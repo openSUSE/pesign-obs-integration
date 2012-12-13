@@ -1,0 +1,6 @@
+-------------------------------------------------------------------
+Thu Dec 13 12:06:00 UTC 2012 - mmarek@suse.com
+
+- Created package with macros and scripts to integrate kernel and
+  bootloader signing into OBS (fate#314552).
+

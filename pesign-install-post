@@ -1,0 +1,53 @@
+#!/bin/bash
+
+files=
+output=
+while $# -gt 0; do
+	case "$1" in
+	--files)
+		files=$2
+		shift 2
+		;;
+	--output)
+		output=$2
+		shift 2
+		;;
+	*)
+		echo "$0: Unknown option: $1" >&2
+		exit 1
+	esac
+done
+if test -z "$files"; then
+	exit 0
+fi
+if test -z "$output"; then
+	echo "$0: --output not specified" >&2
+	exit 1
+fi
+if test -z "$RPM_BUILD_ROOT"; then
+	echo "$0: warning: \$RPM_BUILD_ROOT not set, using the root directory" >&2
+	RPM_BUILD_ROOT=/
+fi
+
+mkdir -p "$output"
+# FIXME: Handle remaining rpm tags
+sed -e "s:@NAME@:$RPM_PACKAGE_NAME:" \
+    -e "s:@VERSION@:$RPM_PACKAGE_VERSION:" \
+    -e "s:@RELEASE@:$RPM_PACKAGE_RELEASE:" \
+    /usr/lib/rpm/pesign-repackage.spec.in >"$output"/pesign-repackage.spec
+
+pushd "$RPM_BUILD_ROOT"
+args=()
+for pattern in $files; do
+	pattern=${pattern#/}
+	if "${pattern:0:2}" != "./"; then
+		pattern="./$pattern"
+	fi
+	if test -d "$pattern"; then
+		pattern="$pattern/*"
+	fi
+	args=("${args[@]}" -path "$pattern")
+done
+
+find . "${args[@]}" | cpio -o >"$output/$RPM_PACKAGE_NAME.cpio.rsasign"
+

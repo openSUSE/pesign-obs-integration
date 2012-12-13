@@ -1,0 +1,49 @@
+#!/bin/bash
+
+file_flags=(
+	1	"%config"
+	2	"%doc"
+	16	"(noreplace)"
+	64	"%ghost"
+)
+
+dir=
+case "$1" in
+# Path to directory with unpacked rpm content
+-d | --dir)
+	dir=$2
+	shift 2
+esac
+
+rpm -q "$@" --qf '[%{filenames} %{fileflags} %{filemodes}\n]' | while read f flags mode; do
+	i=0
+	#echo "f: $f, flags: $flags, mode: $mode" >&2
+	tags=
+	while test $i -lt ${#file_flags[*]}; do
+		num=${file_flags[i]}
+		tag=${file_flags[i + 1]}
+		if test $((flags & num)) -ne 0; then
+			tags="$tags $tag"
+			let "flags -= num" || :
+		fi
+		let "i += 2" || :
+	done
+	if test $flags -gt 0; then
+		echo "Unhandled rpm file flags: $flags" >&2
+		exit 1
+	fi
+	if test $((mode & 16384)) -ne 0; then
+		tags="$tags %dir"
+	fi
+	echo "$tags $f"
+	if test -n "$dir"; then
+		if test ! -e "$dir/$f"; then
+			# FIXME: preserve size of ghost files
+			touch "$dir/$f"
+		fi
+		if test -e "$dir/$f.sig"; then
+			echo "$tags $f.sig"
+		fi
+	fi
+
+done

@@ -1,0 +1,48 @@
+#
+# spec file for package @NAME@ (Version @RPMVERSION@)
+#
+# Copyright (c) 2012 SUSE LINUX Products GmbH, Nuernberg, Germany.
+#
+# All modifications and additions to the file contributed by third parties
+# remain the property of their copyright owners, unless otherwise agreed
+# upon. The license for this file, and modifications and additions to the
+# file, is the same license as for the pristine package itself (unless the
+# license for the pristine package is not an Open Source License, in which
+# case the license is the MIT License). An "Open Source License" is a
+# license that conforms to the Open Source Definition (Version 1.9)
+# published by the Open Source Initiative.
+
+# Please submit bugfixes or comments via http://bugs.opensuse.org/
+#
+
+# norootforbuild
+
+Name:           @NAME@
+Version:        @VERSION@
+Release:        @RELEASE@
+License:        @LICENSE@
+Group:          @GROUP@
+Url:            @URL@
+Source1:        %name-%version-%release.%_target_cpu.rpm
+Source2:        %name.cpio.rsasigned
+BuildRoot:      %_tmppath/%name-%version-repackage
+Summary:        @SUMMARY@
+%description
+@DESCRIPTION@
+
+%prep
+%setup -cT -n %name-%version-repack
+
+%build
+
+%install
+
+rpm=%_sourcedir/%name-%version-%release.%_target_cpu.rpm
+pushd %buildroot
+rpm2cpio "$rpm" | cpio -idm
+cpio -idm <%_sourcedir/%name.cpio.rsasigned
+echo '%%defattr(-, root, root)' >%name.files
+/usr/lib/rpm/rpm2filelist -d %buildroot -p "$rpm" >>%name.files
+
+%files -f %name.files
+

@@ -1,0 +1,6 @@
+# Macros for pesign / modsign OBS integration
+
+# The spec file should define %sign_files to a space-separated list of patterns
+# of files to be signed, e.g. %define sign_files /lib/firmware *.ko
+%__os_install_post /usr/lib/rpm/pesign-install-post --files "%{sign_files}" \
+	--output %_topdir/OTHER
