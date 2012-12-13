@@ -1,8 +1,10 @@
 #!/bin/bash
 
+set -e
+
 files=
 output=
-while $# -gt 0; do
+while test $# -gt 0; do
 	case "$1" in
 	--files)
 		files=$2
@@ -40,14 +42,18 @@ pushd "$RPM_BUILD_ROOT"
 args=()
 for pattern in $files; do
 	pattern=${pattern#/}
-	if "${pattern:0:2}" != "./"; then
+	if test "${pattern:0:2}" != "./"; then
 		pattern="./$pattern"
 	fi
 	if test -d "$pattern"; then
 		pattern="$pattern/*"
 	fi
-	args=("${args[@]}" -path "$pattern")
+	args=("${args[@]}" -o -path "$pattern")
 done
+# delete the leading -o
+unset args[0]
 
-find . "${args[@]}" | cpio -o >"$output/$RPM_PACKAGE_NAME.cpio.rsasign"
+archive=$output/$RPM_PACKAGE_NAME.cpio.rsasign
+echo "Creating $archive"
+find . -type f "${args[@]}" | cpio -o >"$archive"
 
