@@ -41,6 +41,7 @@ rpm=%_sourcedir/%name-%version-%release.%_target_cpu.rpm
 pushd %buildroot
 rpm2cpio "$rpm" | cpio -idm
 cpio -idm <%_sourcedir/%name.cpio.rsasigned
+popd
 echo '%%defattr(-, root, root)' >%name.files
 /usr/lib/rpm/rpm2filelist -d %buildroot -p "$rpm" >>%name.files
 
