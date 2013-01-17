@@ -68,7 +68,13 @@ my %dep2tag = (
 	provides => "provide",
 	requires => "require",
 	suggests => "suggests",
-	supplements => "enhances",
+	enhances => "enhances",
+);
+
+# strong version of suggests and enhances
+my %dep2strong = (
+	suggests => "recommends",
+	enhances => "supplements",
 );
 
 # specfile scriptlet => rpm tag name
@@ -204,17 +210,26 @@ my %deptypes = (
 	preun  => (1 << 11),
 	postun => (1 << 12),
 	verify => (1 << 13),
-
+);
+my %depflags = (
+	"<"    => (1 << 1),
+	">"    => (1 << 2),
+	"="    => (1 << 3),
 	rpmlib => (1 << 24),
+	strong => (1 << 27),
 );
 
 sub print_deps {
 	my ($depname, $list) = @_;
 
 	foreach my $d (@$list) {
-		next if ($d->{flags} & $deptypes{rpmlib});
+		next if ($d->{flags} & $depflags{rpmlib});
 
-		print SPEC "$depname";
+		if ($d->{flags} & $depflags{strong}) {
+			print SPEC $dep2strong{$depname};
+		} else {
+			print SPEC $depname;
+		}
 		my @deptypes;
 		while (my ($type, $bit) = each(%deptypes)) {
 			push(@deptypes, $type) if $d->{flags} & $bit;
@@ -225,9 +240,9 @@ sub print_deps {
 		print SPEC quote($d->{name});
 		if ($d->{version}) {
 			print SPEC " ";
-			print SPEC "<" if $d->{flags} & (1 << 1); # RPMSENSE_LESS
-			print SPEC ">" if $d->{flags} & (1 << 2); # RPMSENSE_GREATER
-			print SPEC "=" if $d->{flags} & (1 << 3); # RPMSENSE_EQUAL
+			for my $op (qw(< > =)) {
+				print SPEC $op if $d->{flags} & $depflags{$op};
+			}
 			print SPEC " " . quote($d->{version});
 		}
 		print SPEC "\n";
