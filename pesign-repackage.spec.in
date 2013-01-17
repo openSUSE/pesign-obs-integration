@@ -56,3 +56,7 @@ rpmbuild --define "%%buildroot %buildroot" --define "%%disturl $disturl" \
 # checks, because the RPMs passed them once already
 export NO_BRP_STALE_LINK_ERROR=yes
 
+# Make sure that our rpmbuild does not complain about unpackaged files
+rm -rf %buildroot
+mkdir %buildroot
+
