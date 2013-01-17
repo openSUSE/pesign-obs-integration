@@ -154,6 +154,7 @@ sub print_package {
 	for my $tag (qw(version release license group summary)) {
 		print SPEC "$tag: $p->{$tag}\n";
 	}
+	print SPEC "BuildArch: noarch\n" if $p->{arch} eq "noarch";
 	for my $dep (keys(%dep2tag)) {
 		print_deps($dep, $p->{$dep});
 	}
