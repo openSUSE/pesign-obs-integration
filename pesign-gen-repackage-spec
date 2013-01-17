@@ -214,6 +214,15 @@ sub print_deps {
 	}
 }
 
+# /usr/include/rpm/rpmfi.h
+my %filetypes = (
+	config    => (1 << 0),
+	doc       => (1 << 1),
+	missingok => (1 << 3),
+	noreplace => (1 << 4),
+	ghost     => (1 << 6),
+);
+
 sub print_files {
 	my $files = shift;
 
@@ -222,12 +231,17 @@ sub print_files {
 		$attrs .= "\%dir " if S_ISDIR($f->{mode});
 		$attrs .= sprintf('%%attr(%04o, %s, %s) ', ($f->{mode} & 0777),
 			$f->{owner}, $f->{group});
-		if ($f->{flags} & 1) {
+		if ($f->{flags} & $filetypes{config}) {
 			$attrs .= "%config ";
-			$attrs .= "(noreplace) " if $f->{flags} & 16;
+			my @cfg_attrs;
+			for my $attr (qw(missingok noreplace)) {
+				next unless $f->{flags} & $filetypes{$attr};
+				push(@cfg_attrs, $attr);
+			}
+			$attrs .= "(" . join(",", @cfg_attrs) . ")" if @cfg_attrs;
 		}
-		$attrs .= "%doc " if $f->{flags} & 2;
-		$attrs .= "%ghost " if $f->{flags} & 64;
+		$attrs .= "%doc " if $f->{flags} & $filetypes{doc};
+		$attrs .= "%ghost " if $f->{flags} & $filetypes{ghost};
 		print SPEC "$attrs $f->{name}\n";
 		if (-e "$directory/$f->{name}.sig") {
 			print SPEC "$attrs $f->{name}.sig\n";
