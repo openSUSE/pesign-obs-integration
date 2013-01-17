@@ -39,7 +39,7 @@ for rpm in %_sourcedir/*.rpm; do
 done
 cpio -idm <%_sourcedir/%name.cpio.rsasigned
 popd
-pesign-gen-repackage-spec.pl --directory=%buildroot >repackage.spec
+pesign-gen-repackage-spec.pl --directory=%buildroot
 rpmbuild --define "%%buildroot %buildroot" -bb repackage.spec
 
 
