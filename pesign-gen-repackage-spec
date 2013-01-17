@@ -113,6 +113,7 @@ sub load_package {
 		my @deps;
 		my @list = query_array($rpm, "${tag}name", "${tag}flags", "${tag}version");
 		for my $d (@list) {
+			next if $d->[0] eq "(none)";
 			push(@deps, {
 					name => $d->[0],
 					flags => $d->[1],
