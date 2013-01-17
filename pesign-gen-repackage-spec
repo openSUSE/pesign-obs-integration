@@ -12,7 +12,7 @@ my $directory;
 my $output = ".";
 my @rpms;
 
-$ENV{LC_ALL} = "C";
+$ENV{LC_ALL} = "en_US.UTF-8";
 
 GetOptions(
 	"help|h" => sub { print $USAGE; exit; },
