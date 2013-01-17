@@ -192,8 +192,6 @@ sub print_deps {
 	my ($depname, $list) = @_;
 
 	foreach my $d (@$list) {
-		use Data::Dumper;
-		#print STDERR Dumper($d);
 		next if ($d->{flags} & $deptypes{rpmlib});
 
 		print SPEC "$depname";
