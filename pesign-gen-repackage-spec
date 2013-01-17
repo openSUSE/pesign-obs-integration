@@ -57,6 +57,16 @@ sub query_single {
 
 }
 
+# specfile dependency => rpm tag name
+my %dep2tag = (
+	conflicts => "conflict",
+	obsoletes => "obsolete",
+	provides => "provide",
+	requires => "require",
+	suggests => "suggests",
+	supplements => "enhances",
+);
+
 sub load_package {
 	my $rpm = shift;
 	my %res;
@@ -77,9 +87,17 @@ sub load_package {
 		});
 	}
 	$res{files} = \@files;
-	for my $dep (qw(conflict enhances obsolete provide require suggests)) {
-		my @list = query_array($rpm, "${dep}name", "${dep}flags:depflags", "${dep}version");
-		$res{$dep} = \@list;
+	while (my ($dep, $tag) = each(%dep2tag)) {
+		my @deps;
+		my @list = query_array($rpm, "${tag}name", "${tag}flags", "${tag}version");
+		for my $d (@list) {
+			push(@deps, {
+					name => $d->[0],
+					flags => $d->[1],
+					version => $d->[2],
+			});
+		}
+		$res{$dep} = \@deps;
 	}
 
 	return \%res;
@@ -133,6 +151,9 @@ sub print_package {
 	for my $tag (qw(version release license group summary)) {
 		print "$tag: $p->{$tag}\n";
 	}
+	for my $dep (keys(%dep2tag)) {
+		print_deps($dep, $p->{$dep});
+	}
 	print "\%description -n $p->{name}\n";
 	print "$p->{description}\n\n";
 
@@ -141,6 +162,45 @@ sub print_package {
 		print_files($p->{files});
 	}
 	print "\n";
+}
+
+# /usr/include/rpm/rpmds.h
+my %deptypes = (
+	pre    => (1 <<  9),
+	post   => (1 << 10),
+	preun  => (1 << 11),
+	postun => (1 << 12),
+	verify => (1 << 13),
+
+	rpmlib => (1 << 24),
+);
+
+sub print_deps {
+	my ($depname, $list) = @_;
+
+	foreach my $d (@$list) {
+		use Data::Dumper;
+		#print STDERR Dumper($d);
+		next if ($d->{flags} & $deptypes{rpmlib});
+
+		print "$depname";
+		my @deptypes;
+		while (my ($type, $bit) = each(%deptypes)) {
+			push(@deptypes, $type) if $d->{flags} & $bit;
+		}
+		print "(", join(",", @deptypes), ")" if @deptypes;
+		print ": ";
+
+		print $d->{name};
+		if ($d->{version}) {
+			print " ";
+			print "<" if $d->{flags} & (1 << 1); # RPMSENSE_LESS
+			print ">" if $d->{flags} & (1 << 2); # RPMSENSE_GREATER
+			print "=" if $d->{flags} & (1 << 3); # RPMSENSE_EQUAL
+			print " $d->{version}";
+		}
+		print "\n";
+	}
 }
 
 sub print_files {
