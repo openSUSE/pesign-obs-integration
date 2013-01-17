@@ -21,9 +21,9 @@ Name:           pesign-repackage
 Version:        1.0
 Release:        1
 License:        GPLv
-Source:         pesign-gen-repackage-spec.pl
 Group:          Development/Tools/Other
 Summary:        Spec file to rebuild RPMs with signatures
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
 Rebuilds RPMs with signatures
 
@@ -34,12 +34,22 @@ Rebuilds RPMs with signatures
 %install
 
 pushd %buildroot
+disturl=
 for rpm in %_sourcedir/*.rpm; do
 	rpm2cpio "$rpm" | cpio -idm
+	d=$(rpm -qp --qf '%%{disturl}' "$rpm")
+	if test -z "$disturl"; then
+		disturl=$d
+	fi
+	if test "$disturl" != "$d"; then
+		echo "Error: packages have different disturl: $d vs $disturl"
+		exit 1
+	fi
 done
-cpio -idm <%_sourcedir/%name.cpio.rsasigned
+cpio -idm <%_sourcedir/rsasigned.cpio
 popd
-pesign-gen-repackage-spec.pl --directory=%buildroot
-rpmbuild --define "%%buildroot %buildroot" -bb repackage.spec
+/usr/lib/rpm/pesign-gen-repackage-spec --directory=%buildroot %_sourcedir/*.rpm
+rpmbuild --define "%%buildroot %buildroot" --define "%%disturl $disturl" \
+	-bb repackage.spec
 
 
