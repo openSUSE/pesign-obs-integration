@@ -95,15 +95,16 @@ sub load_package {
 		$res{$tag} = query_single($rpm, $tag);
 	}
 	my @files;
-	my @list = query_array($rpm, qw(filenames fileflags filemodes fileusername filegroupname filesizes));
+	my @list = query_array($rpm, qw(filenames fileflags filemodes fileusername filegroupname filesizes filemtimes));
 	for my $file (@list) {
 		push(@files, {
-				name => $file->[0],
+				name  => $file->[0],
 				flags => $file->[1],
-				mode => $file->[2],
+				mode  => $file->[2],
 				owner => $file->[3],
 				group => $file->[4],
-				size => $file->[5],
+				size  => $file->[5],
+				mtime => $file->[6],
 		});
 	}
 	$res{files} = \@files;
@@ -237,7 +238,17 @@ sub print_files {
 
 	for my $f (@$files) {
 		my $attrs = "";
-		$attrs .= "\%dir " if S_ISDIR($f->{mode});
+		# Fix mtime of directories and symlinks, which cpio -idm fails
+		# to preserve
+		if (S_ISDIR($f->{mode})) {
+			$attrs .= "\%dir ";
+			utime($f->{mtime}, $f->{mtime}, "$directory/$f->{name}");
+		}
+		if (S_ISLNK($f->{mode})) {
+			# perl core does not provide lutimes()/utimensat()
+			system("touch", "-h", "-d\@$f->{mtime}",
+				"$directory/$f->{name}");
+		}
 		$attrs .= sprintf('%%attr(%04o, %s, %s) ', ($f->{mode} & 0777),
 			$f->{owner}, $f->{group});
 		if ($f->{flags} & $filetypes{config}) {
