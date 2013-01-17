@@ -147,10 +147,9 @@ sub print_package {
 		print SPEC "Name: $p->{name}\n";
 		print SPEC "Buildroot: $directory\n";
 		print SPEC "\%define _use_internal_dependency_generator 0\n";
-		print SPEC "\%define __find_provides /bin/true\n";
-		print SPEC "\%define __find_requires /bin/true\n";
-		print SPEC "\%define __find_supplements /bin/true\n";
-		print SPEC "\%define __find_provides /bin/true\n";
+		print SPEC "\%define __find_provides %{nil}\n";
+		print SPEC "\%define __find_requires %{nil}\n";
+		print SPEC "\%define __find_supplements %{nil}\n";
 
 	} else {
 		print SPEC "\%package -n $p->{name}\n";
