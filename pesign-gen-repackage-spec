@@ -150,7 +150,13 @@ sub print_package {
 		print SPEC "\%define __find_provides %{nil}\n";
 		print SPEC "\%define __find_requires %{nil}\n";
 		print SPEC "\%define __find_supplements %{nil}\n";
-
+		if ($p->{nosource}) {
+			# We do not generate any no(src).rpm, but we want the
+			# %{sourcerpm} tag in the binary packages to match.
+			# So we add a dummy source and mark it as nosource.
+			print SPEC "Source0: repackage.spec\n";
+			print SPEC "NoSource: 0\n";
+		}
 	} else {
 		print SPEC "\%package -n $p->{name}\n";
 	}
@@ -265,10 +271,10 @@ for my $p (values(%packages)) {
 		die "Error: packages built from different source rpm: $sourcerpm vs $p->{sourcerpm}\n";
 	}
 }
-if ($sourcerpm !~ /^(.+)-([^-]+)-([^-]+)\.src\.rpm$/) {
+if ($sourcerpm !~ /^(.+)-([^-]+)-([^-]+)\.(no)?src\.rpm$/) {
 	die "Error: malformed %{sourcerpm} tag: $sourcerpm\n";
 }
-my ($main_name, $main_ver, $main_rel) = ($1, $2, $3);
+my ($main_name, $main_ver, $main_rel, $nosrc) = ($1, $2, $3, $4);
 if (!exists($packages{$main_name})) {
 	# create an empty main package
 	my $first = (values(%packages))[0];
@@ -282,6 +288,7 @@ if (!exists($packages{$main_name})) {
 		$packages{$main_name}->{$tag} = $first->{$tag};
 	}
 }
+$packages{$main_name}->{nosource} = $nosrc ? 1 : 0;
 
 open(SPEC, '>', "$output/repackage.spec") or die "$output/repackage.spec: $!\n";
 print_package($packages{$main_name}, 1);
