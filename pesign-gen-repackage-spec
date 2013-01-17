@@ -1,0 +1,171 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my $USAGE = "Usage: $0 --directory <payload directory> rpm...\n";
+
+use Getopt::Long;
+use Fcntl qw(:mode);
+
+my $directory;
+my @rpms;
+
+GetOptions(
+	"help|h" => sub { print $USAGE; exit; },
+	"directory|d=s" => \$directory,
+) or die $USAGE;
+@rpms = @ARGV;
+if (!@rpms) {
+	print STDERR "$0: No packages given\n";
+	die $USAGE;
+}
+if (!$directory || substr($directory, 0, 1) ne '/' || ! -d $directory) {
+	print STDERR "$0: --directory must be an absolute path\n";
+	die $USAGE;
+}
+
+sub query_array {
+	my ($rpm, @tags) = @_;
+	my @res;
+
+	my $format = "[" . join("|", map { "\%{$_}" } @tags) . "\\n]";
+	open(my $fh, '-|', "rpm", "-qp", "--qf", $format, $rpm)
+		or die "rpm: $!\n";
+	while (<$fh>) {
+		chomp;
+		my @t = split(/\|/, $_, -1);
+		push(@res, \@t);
+	}
+	close($fh);
+	return @res;
+}
+
+sub query_single {
+	my ($rpm, $tag) = @_;
+	my $res;
+
+	open(my $fh, '-|', "rpm", "-qp", "--qf", "\%{$tag}\\n", $rpm)
+		or die "rpm: $!\n";
+	{
+		local $/ = undef;
+		$res = <$fh>;
+	}
+	chomp $res;
+	close($fh);
+	return $res;
+
+}
+
+sub load_package {
+	my $rpm = shift;
+	my %res;
+
+	for my $tag (qw(name version release arch sourcerpm license group summary description)) {
+		$res{$tag} = query_single($rpm, $tag);
+	}
+	my @files;
+	my @list = query_array($rpm, qw(filenames fileflags filemodes fileusername filegroupname filesizes));
+	for my $file (@list) {
+		push(@files, {
+				name => $file->[0],
+				flags => $file->[1],
+				mode => $file->[2],
+				owner => $file->[3],
+				group => $file->[4],
+				size => $file->[5],
+		});
+	}
+	$res{files} = \@files;
+	for my $dep (qw(conflict enhances obsolete provide require suggests)) {
+		my @list = query_array($rpm, "${dep}name", "${dep}flags:depflags", "${dep}version");
+		$res{$dep} = \@list;
+	}
+
+	return \%res;
+}
+
+my %packages;
+for my $rpm (@rpms) {
+	my $p = load_package($rpm);
+	$packages{$p->{name}} = $p;
+}
+
+my $sourcerpm;
+for my $p (values(%packages)) {
+	$sourcerpm = $p->{sourcerpm} unless $sourcerpm;
+	if ($p->{sourcerpm} ne $sourcerpm) {
+		die "Error: packages built from different source rpm: $sourcerpm vs $p->{sourcerpm}\n";
+	}
+}
+if ($sourcerpm !~ /^(.+)-([^-]+)-([^-]+)\.src\.rpm$/) {
+	die "Error: malformed %{sourcerpm} tag: $sourcerpm\n";
+}
+my ($main_name, $main_ver, $main_rel) = ($1, $2, $3);
+if (!exists($packages{$main_name})) {
+	# create an empty main package, only the NVR matters
+	my $first = (values(%packages))[0];
+	$packages{$main_name} = {
+		name => $main_name,
+		version => $main_ver,
+		release => $main_rel,
+	};
+	for my $tag (qw(license group summary description)) {
+		$packages{$main_name}->{$tag} = $first->{$tag};
+	}
+}
+
+sub print_package {
+	my ($p, $is_main) = @_;
+
+	if ($is_main) {
+		print "Name: $p->{name}\n";
+		print "Buildroot: $directory\n";
+		print "\%define _use_internal_dependency_generator 0\n";
+		print "\%define __find_provides /bin/true\n";
+		print "\%define __find_requires /bin/true\n";
+		print "\%define __find_supplements /bin/true\n";
+		print "\%define __find_provides /bin/true\n";
+
+	} else {
+		print "\%package -n $p->{name}\n";
+	}
+	for my $tag (qw(version release license group summary)) {
+		print "$tag: $p->{$tag}\n";
+	}
+	print "\%description -n $p->{name}\n";
+	print "$p->{description}\n\n";
+
+	if ($p->{files}) {
+		print "\%files -n $p->{name}\n";
+		print_files($p->{files});
+	}
+	print "\n";
+}
+
+sub print_files {
+	my $files = shift;
+
+	for my $f (@$files) {
+		my $attrs = "";
+		$attrs .= "\%dir " if S_ISDIR($f->{mode});
+		$attrs .= sprintf('%%attr(%04o, %s, %s) ', ($f->{mode} & 0777),
+			$f->{owner}, $f->{group});
+		if ($f->{flags} & 1) {
+			$attrs .= "%config ";
+			$attrs .= "(noreplace) " if $f->{flags} & 16;
+		}
+		$attrs .= "%doc " if $f->{flags} & 2;
+		$attrs .= "%ghost " if $f->{flags} & 64;
+		print "$attrs $f->{name}\n";
+		if (-e "$directory/$f->{name}.sig") {
+			print "$attrs $f->{name}.sig\n";
+		}
+	}
+}
+
+print_package($packages{$main_name}, 1);
+for my $p (values(%packages)) {
+	next if $p->{name} eq $main_name;
+	print_package($p, 0);
+}

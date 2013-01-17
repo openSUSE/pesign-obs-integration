@@ -17,33 +17,29 @@
 
 # norootforbuild
 
-Name:           @NAME@
-Version:        @VERSION@
-Release:        @RELEASE@
-License:        @LICENSE@
-Group:          @GROUP@
-Url:            @URL@
-Source1:        %name-%version-%release.%_target_cpu.rpm
-Source2:        %name.cpio.rsasigned
-BuildRoot:      %_tmppath/%name-%version-repackage
-Summary:        @SUMMARY@
+Name:           pesign-repackage
+Version:        1.0
+Release:        1
+License:        GPLv
+Source:         pesign-gen-repackage-spec.pl
+Group:          Development/Tools/Other
+Summary:        Spec file to rebuild RPMs with signatures
 %description
-@DESCRIPTION@
+Rebuilds RPMs with signatures
 
 %prep
-%setup -cT -n %name-%version-repack
 
 %build
 
 %install
 
-rpm=%_sourcedir/%name-%version-%release.%_target_cpu.rpm
 pushd %buildroot
-rpm2cpio "$rpm" | cpio -idm
+for rpm in %_sourcedir/*.rpm; do
+	rpm2cpio "$rpm" | cpio -idm
+done
 cpio -idm <%_sourcedir/%name.cpio.rsasigned
 popd
-echo '%%defattr(-, root, root)' >%name.files
-/usr/lib/rpm/rpm2filelist -d %buildroot -p "$rpm" >>%name.files
+pesign-gen-repackage-spec.pl --directory=%buildroot >repackage.spec
+rpmbuild --define "%%buildroot %buildroot" -bb repackage.spec
 
-%files -f %name.files
 

@@ -26,7 +26,7 @@ Group:          Development/Tools/Other
 URL:            http://en.opensuse.org/openSUSE:UEFI_Image_File_Sign_Tools
 Source1:        macros.pesign-obs
 Source2:        pesign-repackage.spec.in
-Source3:        rpm2filelist
+Source3:        pesign-gen-repackage-spec
 Source4:        pesign-install-post
 Source5:        COPYING
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -44,7 +44,7 @@ cp %_sourcedir/COPYING .
 
 mkdir -p %buildroot/usr/lib/rpm %buildroot/etc/rpm
 install -m644 %_sourcedir/macros.pesign-obs %buildroot/etc/rpm
-install  %_sourcedir/{rpm2filelist,pesign-install-post} %buildroot/usr/lib/rpm
+install  %_sourcedir/{pesign-gen-repackage-spec,pesign-install-post} %buildroot/usr/lib/rpm
 install -m644 %_sourcedir/pesign-repackage.spec.in %buildroot/usr/lib/rpm
 
 %files

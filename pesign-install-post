@@ -32,11 +32,7 @@ if test -z "$RPM_BUILD_ROOT"; then
 fi
 
 mkdir -p "$output"
-# FIXME: Handle remaining rpm tags
-sed -e "s:@NAME@:$RPM_PACKAGE_NAME:" \
-    -e "s:@VERSION@:$RPM_PACKAGE_VERSION:" \
-    -e "s:@RELEASE@:$RPM_PACKAGE_RELEASE:" \
-    /usr/lib/rpm/pesign-repackage.spec.in >"$output"/pesign-repackage.spec
+cp /usr/lib/rpm/pesign-repackage.spec.in "$output/pesign-repackage.spec"
 
 pushd "$RPM_BUILD_ROOT"
 args=()
