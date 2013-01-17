@@ -52,4 +52,7 @@ popd
 rpmbuild --define "%%buildroot %buildroot" --define "%%disturl $disturl" \
 	-bb repackage.spec
 
+# This is needed by the kernel packages. Ideally, we should not run _any_ brp
+# checks, because the RPMs passed them once already
+export NO_BRP_STALE_LINK_ERROR=yes
 
