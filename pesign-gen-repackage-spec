@@ -83,11 +83,15 @@ my %script2tag = (
 	# FIXME: triggers
 );
 
+# tags which are printed verbatim in the specfile
+my @simple_tags = qw(version release license group summary packager vendor
+                     url distribution);
+
 sub load_package {
 	my $rpm = shift;
 	my %res;
 
-	for my $tag (qw(name version release arch sourcerpm license group summary description)) {
+	for my $tag (qw(name arch sourcerpm description), @simple_tags) {
 		$res{$tag} = query_single($rpm, $tag);
 	}
 	my @files;
@@ -151,7 +155,7 @@ sub print_package {
 	} else {
 		print SPEC "\%package -n $p->{name}\n";
 	}
-	for my $tag (qw(version release license group summary)) {
+	for my $tag (@simple_tags) {
 		print SPEC "$tag: $p->{$tag}\n";
 	}
 	print SPEC "BuildArch: noarch\n" if $p->{arch} eq "noarch";
@@ -267,14 +271,15 @@ if ($sourcerpm !~ /^(.+)-([^-]+)-([^-]+)\.src\.rpm$/) {
 }
 my ($main_name, $main_ver, $main_rel) = ($1, $2, $3);
 if (!exists($packages{$main_name})) {
-	# create an empty main package, only the NVR and changelog matters
+	# create an empty main package
 	my $first = (values(%packages))[0];
 	$packages{$main_name} = {
 		name => $main_name,
 		version => $main_ver,
 		release => $main_rel,
 	};
-	for my $tag (qw(license group summary description changelog)) {
+	for my $tag (qw(description changelog arch), @simple_tags) {
+		next if $packages{$main_name}->{$tag};
 		$packages{$main_name}->{$tag} = $first->{$tag};
 	}
 }
