@@ -6,7 +6,7 @@ use warnings;
 my $USAGE = "Usage: $0 --directory <payload directory> rpm...\n";
 
 use Getopt::Long;
-use Fcntl qw(:mode);
+use Fcntl qw(:mode :seek);
 
 my $directory;
 my $output = ".";
@@ -95,16 +95,17 @@ sub load_package {
 		$res{$tag} = query_single($rpm, $tag);
 	}
 	my @files;
-	my @list = query_array($rpm, qw(filenames fileflags filemodes fileusername filegroupname filesizes filemtimes));
+	my @list = query_array($rpm, qw(filenames fileflags filemodes fileusername filegroupname filesizes filemtimes filelinktos));
 	for my $file (@list) {
 		push(@files, {
-				name  => $file->[0],
-				flags => $file->[1],
-				mode  => $file->[2],
-				owner => $file->[3],
-				group => $file->[4],
-				size  => $file->[5],
-				mtime => $file->[6],
+				name   => $file->[0],
+				flags  => $file->[1],
+				mode   => $file->[2],
+				owner  => $file->[3],
+				group  => $file->[4],
+				size   => $file->[5],
+				mtime  => $file->[6],
+				target => $file->[7],
 		});
 	}
 	$res{files} = \@files;
@@ -237,17 +238,12 @@ sub print_files {
 	my $files = shift;
 
 	for my $f (@$files) {
+		my $path = "$directory/$f->{name}";
 		my $attrs = "";
-		# Fix mtime of directories and symlinks, which cpio -idm fails
-		# to preserve
+		# Fix mtime of directories, which cpio -idm fails to preserve
 		if (S_ISDIR($f->{mode})) {
 			$attrs .= "\%dir ";
-			utime($f->{mtime}, $f->{mtime}, "$directory/$f->{name}");
-		}
-		if (S_ISLNK($f->{mode})) {
-			# perl core does not provide lutimes()/utimensat()
-			system("touch", "-h", "-d\@$f->{mtime}",
-				"$directory/$f->{name}");
+			utime($f->{mtime}, $f->{mtime}, $path);
 		}
 		$attrs .= sprintf('%%attr(%04o, %s, %s) ', ($f->{mode} & 0777),
 			$f->{owner}, $f->{group});
@@ -261,9 +257,28 @@ sub print_files {
 			$attrs .= "(" . join(",", @cfg_attrs) . ")" if @cfg_attrs;
 		}
 		$attrs .= "%doc " if $f->{flags} & $filetypes{doc};
-		$attrs .= "%ghost " if $f->{flags} & $filetypes{ghost};
+		if ($f->{flags} & $filetypes{ghost}) {
+			$attrs .= "%ghost ";
+			if (S_ISREG($f->{mode})) {
+				open(my $fh, '>', $path) or die "$path: $!\n";
+				if ($f->{size} > 0) {
+					sysseek($fh, $f->{size} - 1, SEEK_SET);
+					syswrite($fh, ' ', 1);
+				}
+				close($fh);
+				utime($f->{mtime}, $f->{mtime}, $path);
+			} elsif (S_ISLNK($f->{mode})) {
+				symlink($f->{target}, $path);
+			}
+		}
+		# mtime of symlinks is also not preserved by cpio
+		if (S_ISLNK($f->{mode})) {
+			# perl core does not provide lutimes()/utimensat()
+			system("touch", "-h", "-d\@$f->{mtime}", $path);
+		}
+
 		print SPEC "$attrs $f->{name}\n";
-		if (-e "$directory/$f->{name}.sig") {
+		if (-e "$path.sig") {
 			print SPEC "$attrs $f->{name}.sig\n";
 		}
 	}
