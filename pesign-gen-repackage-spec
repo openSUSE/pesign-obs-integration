@@ -12,6 +12,8 @@ my $directory;
 my $output = ".";
 my @rpms;
 
+$ENV{LC_ALL} = "C";
+
 GetOptions(
 	"help|h" => sub { print $USAGE; exit; },
 	"directory|d=s" => \$directory,
@@ -122,6 +124,13 @@ sub load_package {
 			interp => $interp,
 			script => $s,
 		};
+	}
+	open(my $fh, '-|', "rpm", "-qp", "--changelog", $rpm) or die "rpm: $!\n";
+	{
+		local $/ = undef;
+		my $changelog = <$fh>;
+		close($fh);
+		$res{changelog} = $changelog;
 	}
 
 	return \%res;
@@ -245,14 +254,14 @@ if ($sourcerpm !~ /^(.+)-([^-]+)-([^-]+)\.src\.rpm$/) {
 }
 my ($main_name, $main_ver, $main_rel) = ($1, $2, $3);
 if (!exists($packages{$main_name})) {
-	# create an empty main package, only the NVR matters
+	# create an empty main package, only the NVR and changelog matters
 	my $first = (values(%packages))[0];
 	$packages{$main_name} = {
 		name => $main_name,
 		version => $main_ver,
 		release => $main_rel,
 	};
-	for my $tag (qw(license group summary description)) {
+	for my $tag (qw(license group summary description changelog)) {
 		$packages{$main_name}->{$tag} = $first->{$tag};
 	}
 }
@@ -263,3 +272,6 @@ for my $p (values(%packages)) {
 	next if $p->{name} eq $main_name;
 	print_package($p, 0);
 }
+print SPEC "\%changelog\n";
+print SPEC $packages{$main_name}->{changelog};
+close(SPEC);
