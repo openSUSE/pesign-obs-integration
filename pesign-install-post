@@ -2,6 +2,7 @@
 
 set -e
 
+hash_algo=sha256
 files=
 output=
 while test $# -gt 0; do
@@ -34,7 +35,7 @@ fi
 mkdir -p "$output"
 cp /usr/lib/rpm/pesign-repackage.spec.in "$output/pesign-repackage.spec"
 
-pushd "$RPM_BUILD_ROOT"
+cd "$RPM_BUILD_ROOT"
 args=()
 for pattern in $files; do
 	pattern=${pattern#/}
@@ -50,6 +51,37 @@ done
 unset args[0]
 
 archive=$output/$RPM_PACKAGE_NAME.cpio.rsasign
+archive_dir=$output/$RPM_PACKAGE_NAME
+mkdir -p "$archive_dir"
+# create an empty nss database to make pesign happy
+nss_db=$(mktemp -d)
+trap 'rm -rf "$nss_db"' EXIT
+echo >"$nss_db/password"
+certutil -N -f "$nss_db/password" -d "$nss_db"
+
 echo "Creating $archive"
-find . -type f "${args[@]}" | cpio -o >"$archive"
+files=($(find . -type f "${args[@]}"))
+for f in "${files[@]}"; do
+	hash_file="$archive_dir/$f.$hash_algo"
+	mkdir -p "${hash_file%/*}"
+	case "$f" in
+	./lib/firmware/* | *.ko)
+		openssl dgst "-$hash_algo" -binary "$f" >"$hash_file"
+		;;
+	./boot/* | *.efi)
+		pesign --certdir="$nss_db" --digest_type=$hash_algo --hash \
+			-i "$f" | perl -w -e '
+			my $h = <>;
+			chomp $h;
+			$h =~ s/hash: //;
+			print pack("H*", $h);' >"$hash_file"
+		;;
+	*)
+		echo "Unknown file requested to be signed: $f"
+		exit 1
+	esac
+done
+cd "$archive_dir"
+find . -type f | cpio -o >"$archive"
+rm -rf "$archive_dir"
 
