@@ -23,7 +23,7 @@
 # norootforbuild
 Name:           pesign-obs-integration
 Summary:        Macros and scripts to sign the kernel and bootloader
-Version:        1.0
+Version:        2.0
 Release:        1
 BuildArch:      noarch
 Requires:       openssl pesign mozilla-nss-tools

@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Jan 18 12:51:17 UTC 2013 - mmarek@suse.cz
+
+- Version 2
+- Generates another specfile in pesign-repackage.spec to
+  be able to copy nearly all RPM tags from the original packages.
+- Changed to only store sha256 hashes in the *.cpio.rsasign file,
+  instead of whole files.
+
+-------------------------------------------------------------------
 Thu Dec 13 12:06:00 UTC 2012 - mmarek@suse.com
 
 - Created package with macros and scripts to integrate kernel and
