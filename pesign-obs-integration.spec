@@ -1,17 +1,22 @@
 #
 # spec file for package pesign-obs-integration (Version 1.0)
 #
-# Copyright (c) 2012 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
-# All modifications and additions to the file contributed by third parties
-# remain the property of their copyright owners, unless otherwise agreed
-# upon. The license for this file, and modifications and additions to the
-# file, is the same license as for the pristine package itself (unless the
-# license for the pristine package is not an Open Source License, in which
-# case the license is the MIT License). An "Open Source License" is a
-# license that conforms to the Open Source Definition (Version 1.9)
-# published by the Open Source Initiative.
-
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+#
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
@@ -30,6 +35,7 @@ Source2:        pesign-repackage.spec.in
 Source3:        pesign-gen-repackage-spec
 Source4:        pesign-install-post
 Source5:        COPYING
+Source6:        README
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
 This package provides scripts and rpm macros to automate signing of the
@@ -37,7 +43,7 @@ boot loader, kernel and kernel modules in the openSUSE Buildservice.
 
 %prep
 %setup -cT
-cp %_sourcedir/COPYING .
+cp %_sourcedir/{COPYING,README} .
 
 %build
 
@@ -50,7 +56,7 @@ install -m644 %_sourcedir/pesign-repackage.spec.in %buildroot/usr/lib/rpm
 
 %files
 %defattr(-,root,root)
-%doc COPYING
+%doc COPYING README
 /usr/lib/rpm/*
 /etc/rpm/*
 
