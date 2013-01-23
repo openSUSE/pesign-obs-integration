@@ -22,7 +22,6 @@
 
 set -e
 
-hash_algo=sha256
 files=
 output=
 while test $# -gt 0; do
@@ -82,23 +81,14 @@ certutil -N -f "$nss_db/password" -d "$nss_db"
 echo "Creating $archive"
 files=($(find . -type f "${args[@]}"))
 for f in "${files[@]}"; do
-	hash_file="$archive_dir/$f.$hash_algo"
-	mkdir -p "${hash_file%/*}"
+	dest="$archive_dir/$f"
+	mkdir -p "${dest%/*}"
 	case "$f" in
-	./lib/firmware/* | *.ko)
-		openssl dgst "-$hash_algo" -binary "$f" >"$hash_file"
-		;;
 	./boot/* | *.efi)
-		pesign --certdir="$nss_db" --digest_type=$hash_algo --hash \
-			-i "$f" | perl -w -e '
-			my $h = <>;
-			chomp $h;
-			$h =~ s/hash: //;
-			print pack("H*", $h);' >"$hash_file"
+		pesign --certdir="$nss_db" -i "$f" --digestdata "$dest"
 		;;
 	*)
-		echo "Unknown file requested to be signed: $f"
-		exit 1
+		cp "$f" "$dest"
 	esac
 done
 cd "$archive_dir"
