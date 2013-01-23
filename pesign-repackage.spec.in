@@ -30,6 +30,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Rebuilds RPMs with signatures
 
 %prep
+%setup -c -T
 
 %build
 
@@ -48,7 +49,22 @@ for rpm in %_sourcedir/*.rpm; do
 		exit 1
 	fi
 done
+popd
+mkdir rsasigned
+pushd rsasigned
 cpio -idm <%_sourcedir/rsasigned.cpio
+cert=/usr/lib/rpm/SLES-UEFI-SIGN-Certificate.x509
+sigs=($(find -type f -name '*.sig'))
+for sig in "${sigs[@]}"; do
+	f=%buildroot/${sig%.sig}
+	case "$sig" in
+	*.ko.sig)
+		/usr/lib/rpm/kernel-sign-file -a sha256 -s "$sig" "$cert" "$f"
+		;;
+	*)
+		echo "Warning: unhandled signature: $sig" >&2
+	esac
+done
 popd
 /usr/lib/rpm/pesign-gen-repackage-spec --directory=%buildroot %_sourcedir/*.rpm
 rpmbuild --define "%%buildroot %buildroot" --define "%%disturl $disturl" \

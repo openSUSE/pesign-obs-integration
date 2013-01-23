@@ -41,6 +41,7 @@ Source5:        COPYING
 Source6:        README
 # FIXME: This should be provided by some package
 Source7:        SLES-UEFI-SIGN-Certificate.crt
+Source8:        kernel-sign-file
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
 This package provides scripts and rpm macros to automate signing of the
@@ -57,7 +58,7 @@ cp %_sourcedir/{COPYING,README} .
 mkdir -p %buildroot/usr/lib/rpm %buildroot/etc/rpm
 cd %_sourcedir
 install -m644 macros.pesign-obs %buildroot/etc/rpm
-install  pesign-gen-repackage-spec pesign-install-post %buildroot/usr/lib/rpm
+install  pesign-gen-repackage-spec pesign-install-post kernel-sign-file %buildroot/usr/lib/rpm
 install -m644 pesign-repackage.spec.in %buildroot/usr/lib/rpm
 openssl x509 -inform PEM -in SLES-UEFI-SIGN-Certificate.crt \
 	-outform DER -out %buildroot/usr/lib/rpm/SLES-UEFI-SIGN-Certificate.x509
