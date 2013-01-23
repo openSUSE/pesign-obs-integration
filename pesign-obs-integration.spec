@@ -29,6 +29,7 @@ Requires:       openssl mozilla-nss-tools
 %ifarch %ix86 x86_64 ia64
 Requires:       pesign
 %endif
+BuildRequires:  openssl
 License:        GPL v2 only
 Group:          Development/Tools/Other
 URL:            http://en.opensuse.org/openSUSE:UEFI_Image_File_Sign_Tools
@@ -38,6 +39,8 @@ Source3:        pesign-gen-repackage-spec
 Source4:        pesign-install-post
 Source5:        COPYING
 Source6:        README
+# FIXME: This should be provided by some package
+Source7:        SLES-UEFI-SIGN-Certificate.crt
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
 This package provides scripts and rpm macros to automate signing of the
@@ -52,9 +55,12 @@ cp %_sourcedir/{COPYING,README} .
 %install
 
 mkdir -p %buildroot/usr/lib/rpm %buildroot/etc/rpm
-install -m644 %_sourcedir/macros.pesign-obs %buildroot/etc/rpm
-install  %_sourcedir/{pesign-gen-repackage-spec,pesign-install-post} %buildroot/usr/lib/rpm
-install -m644 %_sourcedir/pesign-repackage.spec.in %buildroot/usr/lib/rpm
+cd %_sourcedir
+install -m644 macros.pesign-obs %buildroot/etc/rpm
+install  pesign-gen-repackage-spec pesign-install-post %buildroot/usr/lib/rpm
+install -m644 pesign-repackage.spec.in %buildroot/usr/lib/rpm
+openssl x509 -inform PEM -in SLES-UEFI-SIGN-Certificate.crt \
+	-outform DER -out %buildroot/usr/lib/rpm/SLES-UEFI-SIGN-Certificate.x509
 
 %files
 %defattr(-,root,root)
