@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jan 23 22:01:40 UTC 2013 - mmarek@suse.cz
+
+- Version 3
+- Switch to storing whole files in the *.cpio.rsasign archive.
+- Append the signatures to kernel modules.
+
+-------------------------------------------------------------------
 Fri Jan 18 12:51:17 UTC 2013 - mmarek@suse.cz
 
 - Version 2
