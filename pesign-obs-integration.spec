@@ -26,7 +26,10 @@ Summary:        Macros and scripts to sign the kernel and bootloader
 Version:        2.0
 Release:        1
 BuildArch:      noarch
-Requires:       openssl pesign mozilla-nss-tools
+Requires:       openssl mozilla-nss-tools
+%ifarch %ix86 x86_64 ia64
+Requires:       pesign
+%endif
 License:        GPL v2 only
 Group:          Development/Tools/Other
 URL:            http://en.opensuse.org/openSUSE:UEFI_Image_File_Sign_Tools
