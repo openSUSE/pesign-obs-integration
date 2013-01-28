@@ -52,7 +52,8 @@ if test -z "$RPM_BUILD_ROOT"; then
 fi
 
 mkdir -p "$output"
-cp /usr/lib/rpm/pesign-repackage.spec.in "$output/pesign-repackage.spec"
+sed "s:@NAME@:$RPM_PACKAGE_NAME:g" \
+	/usr/lib/rpm/pesign-repackage.spec.in >"$output/pesign-repackage.spec"
 
 cd "$RPM_BUILD_ROOT"
 args=()
