@@ -4,24 +4,27 @@
 #
 
 my $USAGE =
-"Usage: scripts/sign-file [-v] -a <hash algo> <key> <x509> <module> [<dest>]\n" .
-"       scripts/sign-file [-v] -a <hash algo> -s <raw sig> <x509> ...\n";
+"Usage: scripts/sign-file [-v] [-f]  <hash algo> <key> <x509> <module> [<dest>]\n" .
+"       scripts/sign-file [-v] [-f] -s <raw sig> <hash algo> <x509> <module> [<dest>]\n" .
+"       -v verbose output\n" .
+"       -f create a firmware signature file\n";
+
 
 use strict;
 use FileHandle;
 use IPC::Open2;
 use Getopt::Std;
 
-our ($opt_v, $opt_a, $opt_s);
+my %opts;
+getopts('vfs:', \%opts) or die $USAGE;
+my $verbose = $opts{'v'};
+my $signature_file = $opts{'s'};
+my $sign_fw = $opts{'f'};
 
-getopts('va:s:') or die $USAGE;
-my $verbose = $opt_v;
-my $dgst = $opt_a;
-my $signature_file = $opt_s;
+die $USAGE if ($#ARGV > 4);
+die $USAGE if (!$signature_file && $#ARGV < 3 || $signature_file && $#ARGV < 2);
 
-die $USAGE if !$dgst || $#ARGV > 3;
-die $USAGE if !$signature_file && $#ARGV < 2 || $signature_file && $#ARGV < 1;
-
+my $dgst = shift @ARGV;
 my $private_key;
 if (!$signature_file) {
 	$private_key = shift @ARGV;
@@ -32,14 +35,18 @@ my ($dest, $keep_orig);
 if (@ARGV) {
 	$dest = $ARGV[0];
 	$keep_orig = 1;
+} elsif ($sign_fw) {
+	$dest = $module . ".sig";
+	$keep_orig = 1;
 } else {
 	$dest = $module . "~";
 }
+my $mode_name = $sign_fw ? "firmware" : "module";
 
-die "Can't read private key\n" if !$signature_file && !-r $private_key;
-die "Can't read signature file\n" if $signature_file && !-r $signature_file;
+die "Can't read private key\n" if (!$signature_file && !-r $private_key);
+die "Can't read signature file\n" if ($signature_file && !-r $signature_file);
 die "Can't read X.509 certificate\n" unless (-r $x509);
-die "Can't read module\n" unless (-r $module);
+die "Can't read $mode_name\n" unless (-r $module);
 
 #
 # Function to read the contents of a file into a variable.
@@ -386,7 +393,9 @@ $signature = pack("n", length($signature)) . $signature,
 #
 my $unsigned_module = read_file($module);
 
-my $magic_number = "~Module signature appended~\n";
+my $magic_number = $sign_fw ?
+    "~Linux firmware signature~\n" :
+    "~Module signature appended~\n";
 
 my $info = pack("CCCCCxxxN",
 		$algo, $hash, $id_type,
@@ -395,7 +404,7 @@ my $info = pack("CCCCCxxxN",
 		length($signature));
 
 if ($verbose) {
-    print "Size of unsigned module: ", length($unsigned_module), "\n";
+    print "Size of unsigned $mode_name: ", length($unsigned_module), "\n";
     print "Size of signer's name  : ", length($signers_name), "\n";
     print "Size of key identifier : ", length($key_identifier), "\n";
     print "Size of signature      : ", length($signature), "\n";
@@ -407,7 +416,16 @@ if ($verbose) {
 
 open(FD, ">$dest") || die $dest;
 binmode FD;
-print FD
+if ($sign_fw) {
+    print FD
+    $magic_number,
+    $info,
+    $signers_name,
+    $key_identifier,
+    $signature
+    ;
+} else {
+    print FD
     $unsigned_module,
     $signers_name,
     $key_identifier,
@@ -415,6 +433,7 @@ print FD
     $info,
     $magic_number
     ;
+}
 close FD || die $dest;
 
 if (!$keep_orig) {

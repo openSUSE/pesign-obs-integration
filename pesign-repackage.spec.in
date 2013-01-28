@@ -63,7 +63,10 @@ for sig in "${sigs[@]}"; do
 	f=%buildroot/${sig%.sig}
 	case "$sig" in
 	*.ko.sig)
-		/usr/lib/rpm/kernel-sign-file -a sha256 -s "$sig" "$cert" "$f"
+		/usr/lib/rpm/kernel-sign-file -s "$sig" sha256 "$cert" "$f"
+		;;
+	./lib/firmware/*.sig)
+		/usr/lib/rpm/kernel-sign-file -f -s "$sig" sha256 "$cert" "$f"
 		;;
 	*)
 		echo "Warning: unhandled signature: $sig" >&2
