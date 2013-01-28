@@ -39,6 +39,10 @@ Rebuilds RPMs with signatures
 pushd %buildroot
 disturl=
 for rpm in %_sourcedir/*.rpm; do
+	case "$rpm" in
+	*.src.rpm)
+		continue
+	esac
 	rpm2cpio "$rpm" | cpio -idm
 	d=$(rpm -qp --qf '%%{disturl}' "$rpm")
 	if test -z "$disturl"; then
