@@ -59,7 +59,18 @@ popd
 mkdir rsasigned
 pushd rsasigned
 cpio -idm <%_sourcedir/@NAME@.cpio.rsasign.sig
-cert=/usr/lib/rpm/pesign-cert.x509
+cat >cert.crt <<EOF
+@CERT@
+EOF
+if test "$(wc -l <cert.crt)" -gt 1; then
+	openssl x509 -inform PEM -in cert.crt -outform DER -out cert.x509
+	cert=cert.x509
+else
+	echo "warning: No buildservice project certificate found, add"
+	echo "warning: # needssslcertforbuild to the specfile"
+	echo "warning: Using /usr/lib/rpm/pesign-cert.x509 as fallback"
+	cert=/usr/lib/rpm/pesign-cert.x509
+fi
 sigs=($(find -type f -name '*.sig'))
 for sig in "${sigs[@]}"; do
 	f=%buildroot/${sig%.sig}

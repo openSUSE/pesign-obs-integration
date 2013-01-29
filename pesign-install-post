@@ -52,8 +52,20 @@ if test -z "$RPM_BUILD_ROOT"; then
 fi
 
 mkdir -p "$output"
-sed "s:@NAME@:$RPM_PACKAGE_NAME:g" \
-	/usr/lib/rpm/pesign-repackage.spec.in >"$output/pesign-repackage.spec"
+cert=$RPM_SOURCE_DIR/_projectcert.crt
+if test -e "$cert"; then
+	echo "Using signing certificate $cert"
+else
+	echo "No buildservice signing certificate"
+	cert=/dev/null
+fi
+sed "
+	s:@NAME@:$RPM_PACKAGE_NAME:g
+	/@CERT@/ {
+		r $cert
+		d
+	}
+" /usr/lib/rpm/pesign-repackage.spec.in >"$output/pesign-repackage.spec"
 
 cd "$RPM_BUILD_ROOT"
 args=()
