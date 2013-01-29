@@ -25,6 +25,10 @@
 Name:           pesign-repackage
 Version:        1.0
 Release:        1
+BuildRequires:  openssl mozilla-nss-tools
+%ifarch %ix86 x86_64 ia64
+BuildRequires:  pesign
+%endif
 License:        GPLv
 Group:          Development/Tools/Other
 Summary:        Spec file to rebuild RPMs with signatures
