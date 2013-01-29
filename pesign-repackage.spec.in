@@ -38,6 +38,7 @@ Rebuilds RPMs with signatures
 
 pushd %buildroot
 disturl=
+rpms=()
 for rpm in %_sourcedir/*.rpm; do
 	case "$rpm" in
 	*.src.rpm)
@@ -52,6 +53,7 @@ for rpm in %_sourcedir/*.rpm; do
 		echo "Error: packages have different disturl: $d vs $disturl"
 		exit 1
 	fi
+	rpms=("${rpms[@]}" "$rpm")
 done
 popd
 mkdir rsasigned
@@ -73,7 +75,7 @@ for sig in "${sigs[@]}"; do
 	esac
 done
 popd
-/usr/lib/rpm/pesign-gen-repackage-spec --directory=%buildroot %_sourcedir/*.rpm
+/usr/lib/rpm/pesign-gen-repackage-spec --directory=%buildroot "${rpms[@]}"
 rpmbuild --define "%%buildroot %buildroot" --define "%%disturl $disturl" \
 	 --define "%%_builddir $PWD" \
 	 --define "%_suse_insert_debug_package %%{nil}" -bb repackage.spec
