@@ -7,15 +7,15 @@ those parts that are implemented can change slightly.
 Packages that need to sign files during build should add the following lines
 to the specfile
 
-# needs_sign
+# needssslcertforbuild
 %define sign_files pattern...
 BuildRequires: pesign-obs-integration
 
-The "# needs_sign" comment is needed by the buildservice to know which
-packages need special handling. At the end of the install phase, the
-pesign-install-post script computes hashes of all files matching the
-patterns in %sign_files. The sha256 hashes are stored in
-%_topdir/OTHER/%name.cpio.rsasign, plus the script places a
+The "# needssslcertforbuild" comment tells the buildservice to store the
+signing certificate in %_sourcedir/_projectcert.crt. At the end of the
+install phase, the pesign-install-post script computes hashes of all
+files matching the patterns in %sign_files. The sha256 hashes are stored
+in %_topdir/OTHER/%name.cpio.rsasign, plus the script places a
 pesign-repackage.spec file there. When the first rpmbuild finishes, the
 buildservice sends the cpio archive to the signing server, which returns
 a rsasigned.cio archive with RSA signatures of the sha256 hashes.
