@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Jan 29 13:44:43 UTC 2013 - mmarek@suse.cz
+
+- Version 5
+- Use newc-style cpio archives, as required by the buildservice.
+- Use signing certificates provided by the buildservice.
+- Minor fixes.
+
+-------------------------------------------------------------------
 Mon Jan 28 15:01:17 UTC 2013 - mmarek@suse.cz
 
 - Version 4
