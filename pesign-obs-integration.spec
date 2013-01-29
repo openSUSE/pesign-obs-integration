@@ -21,6 +21,8 @@
 #
 
 # norootforbuild
+# needssslcertforbuild
+
 Name:           pesign-obs-integration
 Summary:        Macros and scripts to sign the kernel and bootloader
 Version:        4.0
@@ -39,9 +41,7 @@ Source3:        pesign-gen-repackage-spec
 Source4:        pesign-install-post
 Source5:        COPYING
 Source6:        README
-# FIXME: This should be provided by some package
-Source7:        SLES-UEFI-SIGN-Certificate.crt
-Source8:        kernel-sign-file
+Source7:        kernel-sign-file
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
 This package provides scripts and rpm macros to automate signing of the
@@ -60,8 +60,12 @@ cd %_sourcedir
 install -m644 macros.pesign-obs %buildroot/etc/rpm
 install  pesign-gen-repackage-spec pesign-install-post kernel-sign-file %buildroot/usr/lib/rpm
 install -m644 pesign-repackage.spec.in %buildroot/usr/lib/rpm
-openssl x509 -inform PEM -in SLES-UEFI-SIGN-Certificate.crt \
-	-outform DER -out %buildroot/usr/lib/rpm/SLES-UEFI-SIGN-Certificate.x509
+if test -e _projectcert.crt; then
+	openssl x509 -inform PEM -in _projectcert.crt \
+		-outform DER -out %buildroot/usr/lib/rpm/pesign-cert.x509
+else
+	echo "No buildservice project certificate available"
+fi
 
 %files
 %defattr(-,root,root)

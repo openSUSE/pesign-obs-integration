@@ -59,7 +59,7 @@ popd
 mkdir rsasigned
 pushd rsasigned
 cpio -idm <%_sourcedir/@NAME@.cpio.rsasign.sig
-cert=/usr/lib/rpm/SLES-UEFI-SIGN-Certificate.x509
+cert=/usr/lib/rpm/pesign-cert.x509
 sigs=($(find -type f -name '*.sig'))
 for sig in "${sigs[@]}"; do
 	f=%buildroot/${sig%.sig}
