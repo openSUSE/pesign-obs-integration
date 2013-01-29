@@ -45,6 +45,7 @@ rpms=()
 for rpm in %_sourcedir/*.rpm; do
 	case "$rpm" in
 	*.src.rpm)
+		cp "$rpm" %_srcrpmdir/
 		continue
 	esac
 	rpm2cpio "$rpm" | cpio -idm
