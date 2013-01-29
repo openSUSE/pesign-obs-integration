@@ -92,7 +92,7 @@ echo >"$nss_db/password"
 certutil -N -f "$nss_db/password" -d "$nss_db"
 
 echo "Creating $archive"
-files=($(find . -type f "${args[@]}"))
+files=($(find . -type f \( "${args[@]}" \)))
 for f in "${files[@]}"; do
 	dest="$archive_dir/$f"
 	mkdir -p "${dest%/*}"
