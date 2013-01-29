@@ -48,7 +48,7 @@ disturl=
 rpms=()
 for rpm in %_sourcedir/*.rpm; do
 	case "$rpm" in
-	*.src.rpm)
+	*.src.rpm | *.nosrc.rpm)
 		cp "$rpm" %_srcrpmdir/
 		continue
 	esac
