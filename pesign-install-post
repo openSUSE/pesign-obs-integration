@@ -93,6 +93,6 @@ for f in "${files[@]}"; do
 	esac
 done
 cd "$archive_dir"
-find . -type f | cpio -o >"$archive"
+find . -type f | cpio -H newc -o >"$archive"
 rm -rf "$archive_dir"
 
