@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jan 30 09:47:25 UTC 2013 - mmarek@suse.cz
+
+- Version 6
+- Fix handling packages with NoSource
+- Fix for multiple patterns in %sign_files
+
+-------------------------------------------------------------------
 Tue Jan 29 13:44:43 UTC 2013 - mmarek@suse.cz
 
 - Version 5
