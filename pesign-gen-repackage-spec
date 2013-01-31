@@ -74,6 +74,9 @@ sub query_single {
 		$res = <$fh>;
 	}
 	chomp $res;
+	if ($res eq "(none)") {
+		$res = "";
+	}
 	close($fh);
 	return $res;
 
@@ -196,6 +199,7 @@ sub print_package {
 		print SPEC "\%package -n $p->{name}\n";
 	}
 	for my $tag (@simple_tags) {
+		next if $p->{$tag} eq "";
 		print SPEC "$tag: " . quote($p->{$tag}) . "\n";
 	}
 	print SPEC "BuildArch: noarch\n" if $p->{arch} eq "noarch";
