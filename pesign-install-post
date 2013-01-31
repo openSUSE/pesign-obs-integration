@@ -98,6 +98,7 @@ for f in "${files[@]}"; do
 	mkdir -p "${dest%/*}"
 	case "$f" in
 	./boot/* | *.efi)
+		# FIXME
 		pesign --certdir="$nss_db" -i "$f" --digestdata "$dest"
 		;;
 	*)
