@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb  1 17:18:32 CET 2013 - mls@suse.de
+
+- fix pesign calls
+
+-------------------------------------------------------------------
 Fri Feb  1 10:19:52 UTC 2013 - mmarek@suse.cz
 
 - Add some preliminary code to sign EFI binaries, marked with

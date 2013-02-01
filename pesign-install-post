@@ -88,8 +88,8 @@ mkdir -p "$archive_dir"
 # create an empty nss database to make pesign happy
 nss_db=$(mktemp -d)
 trap 'rm -rf "$nss_db"' EXIT
-echo >"$nss_db/password"
-certutil -N -f "$nss_db/password" -d "$nss_db"
+echo foofoofoo > "$nss_db/passwd"
+certutil -N -d "$nss_db" -f "$nss_db/passwd"
 
 echo "Creating $archive"
 files=($(find . -type f \( "${args[@]}" \)))
@@ -98,8 +98,7 @@ for f in "${files[@]}"; do
 	mkdir -p "${dest%/*}"
 	case "$f" in
 	./boot/* | *.efi)
-		# FIXME
-		pesign --certdir="$nss_db" -i "$f" --digestdata "$dest"
+		pesign --certdir="$nss_db" -i "$f" -E $dest
 		;;
 	*)
 		cp "$f" "$dest"
