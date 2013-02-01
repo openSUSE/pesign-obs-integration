@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb  1 10:19:52 UTC 2013 - mmarek@suse.cz
+
+- Add some preliminary code to sign EFI binaries, marked with
+  FIXMEs.
+
+-------------------------------------------------------------------
 Wed Jan 30 09:47:25 UTC 2013 - mmarek@suse.cz
 
 - Version 6
