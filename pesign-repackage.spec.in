@@ -76,8 +76,8 @@ if test "$(wc -l <cert.crt)" -gt 1; then
 else
 	echo "warning: No buildservice project certificate found, add"
 	echo "warning: # needssslcertforbuild to the specfile"
-	echo "warning: Using /usr/lib/rpm/pesign-cert.x509 as fallback"
-	cert=/usr/lib/rpm/pesign-cert.x509
+	echo "warning: Using /usr/lib/rpm/pesign/pesign-cert.x509 as fallback"
+	cert=/usr/lib/rpm/pesign/pesign-cert.x509
 fi
 mkdir nss-db
 nss_db=$PWD/nss-db
@@ -90,10 +90,10 @@ for sig in "${sigs[@]}"; do
 	f=%buildroot/${sig%.sig}
 	case "$sig" in
 	*.ko.sig)
-		/usr/lib/rpm/kernel-sign-file -s "$sig" sha256 "$cert" "$f"
+		/usr/lib/rpm/pesign/kernel-sign-file -s "$sig" sha256 "$cert" "$f"
 		;;
 	./lib/firmware/*.sig)
-		/usr/lib/rpm/kernel-sign-file -f -s "$sig" sha256 "$cert" "$f"
+		/usr/lib/rpm/pesign/kernel-sign-file -f -s "$sig" sha256 "$cert" "$f"
 		;;
 	./boot/* | *.efi.sig)
 		infile=${sig%.sig}
@@ -114,7 +114,7 @@ for sig in "${sigs[@]}"; do
 	esac
 done
 popd
-/usr/lib/rpm/pesign-gen-repackage-spec --directory=%buildroot "${rpms[@]}"
+/usr/lib/rpm/pesign/pesign-gen-repackage-spec --directory=%buildroot "${rpms[@]}"
 rpmbuild --define "%%buildroot %buildroot" --define "%%disturl $disturl" \
 	 --define "%%_builddir $PWD" \
 	 --define "%_suse_insert_debug_package %%{nil}" -bb repackage.spec

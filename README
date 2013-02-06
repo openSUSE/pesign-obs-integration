@@ -8,13 +8,13 @@ Packages that need to sign files during build should add the following lines
 to the specfile
 
 # needssslcertforbuild
-%define sign_files pattern...
+export BRP_PESIGN_FILES='pattern...'
 BuildRequires: pesign-obs-integration
 
 The "# needssslcertforbuild" comment tells the buildservice to store the
 signing certificate in %_sourcedir/_projectcert.crt. At the end of the
-install phase, the pesign-install-post script computes hashes of all
-files matching the patterns in %sign_files. The sha256 hashes are stored
+install phase, the brp-99-pesign script computes hashes of all
+files matching the patterns in $BRP_PESIGN_FILES. The sha256 hashes are stored
 in %_topdir/OTHER/%name.cpio.rsasign, plus the script places a
 pesign-repackage.spec file there. When the first rpmbuild finishes, the
 buildservice sends the cpio archive to the signing server, which returns

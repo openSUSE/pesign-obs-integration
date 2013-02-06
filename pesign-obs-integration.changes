@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb  6 13:24:14 CET 2013 - mls@suse.de
+
+- switch to normal brp hook
+- mv stuff in pesign directory instead of cluttering /usr/lib/rpm
+
+-------------------------------------------------------------------
 Fri Feb  1 17:18:32 CET 2013 - mls@suse.de
 
 - fix pesign calls

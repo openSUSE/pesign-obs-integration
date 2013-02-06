@@ -1,6 +1,6 @@
 #!/bin/bash
-# This script is run by rpmbuild at the end of install section. It computes
-# hashes of files listed in the %sign_files macro and stores them in
+# This script is run by rpmbuild at the end of the brp checks. It computes
+# hashes of files listed in the BRP_PESIGN_FILES environment and stores them in
 # %_topdir/OTHER/%name.cpio.rsasign. It also puts a specfile there, that
 # is later used to repackage the RPMs.
 #
@@ -22,7 +22,7 @@
 
 set -e
 
-files=
+files=${BRP_PESIGN_FILES}
 output=
 while test $# -gt 0; do
 	case "$1" in
@@ -43,8 +43,7 @@ if test -z "$files"; then
 	exit 0
 fi
 if test -z "$output"; then
-	echo "$0: --output not specified" >&2
-	exit 1
+	output=`rpm --eval %_topdir/OTHER`
 fi
 if test -z "$RPM_BUILD_ROOT"; then
 	echo "$0: warning: \$RPM_BUILD_ROOT not set, using the root directory" >&2
@@ -65,7 +64,7 @@ sed "
 		r $cert
 		d
 	}
-" /usr/lib/rpm/pesign-repackage.spec.in >"$output/pesign-repackage.spec"
+" /usr/lib/rpm/pesign/pesign-repackage.spec.in >"$output/pesign-repackage.spec"
 
 cd "$RPM_BUILD_ROOT"
 args=()
