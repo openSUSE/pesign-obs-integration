@@ -52,6 +52,17 @@ for rpm in %_sourcedir/*.rpm; do
 		cp "$rpm" %_srcrpmdir/
 		continue
 	esac
+	# do not repackage baselibs packages
+	# FIXME: needs more generic test (if architecture has different
+	# bitness => skip)
+	case "$(rpm -qp --qf '%%{name}/%%{arch}' "$rpm")" in
+	*-32bit/x86_64 | *-32bit/s390x | *-32bit/ppc64 | \
+	*-64bit/ppc | *-x86/ia64)
+		arch=$(rpm -qp --qf '%%{arch}' "$rpm")
+		mkdir "%_rpmdir/$arch"
+		cp "$rpm" "$_"
+		continue
+	esac
 	rpm2cpio "$rpm" | cpio -idm
 	d=$(rpm -qp --qf '%%{disturl}' "$rpm")
 	if test -z "$disturl"; then
