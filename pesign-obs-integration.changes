@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 13 08:28:31 UTC 2013 - mmarek@suse.cz
+
+- Version 7
+- Fix for scriptlets with empty body
+
+-------------------------------------------------------------------
 Tue Feb 12 15:42:22 CET 2013 - mls@suse.de
 
 - reduce debugging as pesign is now fixed
