@@ -151,9 +151,9 @@ sub load_package {
 	}
 
 	while (my ($script, $tag) = each(%script2tag)) {
-		my $s = query_single($rpm, $tag);
-		next unless $s && $s ne "(none)";
 		my $interp = query_single($rpm, "${tag}prog");
+		next unless $interp;
+		my $s = query_single($rpm, $tag);
 		$res{$script} = {
 			interp => $interp,
 			script => $s,
@@ -211,12 +211,16 @@ sub print_package {
 
 	for my $script (keys(%script2tag)) {
 		next unless $p->{$script};
-		my $file = "$script-$p->{name}";
-		open(my $fh, '>', "$output/$file") or die "$output/$file: $!\n";
-		print SPEC "\%$script -p $p->{$script}{interp} -n $p->{name} -f $file\n";
-		print $fh $p->{$script}{script};
-		close($fh);
-
+		print SPEC "\%$script -p $p->{$script}{interp} -n $p->{name}";
+		if ($p->{$script}{script}) {
+			my $file = "$script-$p->{name}";
+			open(my $fh, '>', "$output/$file")
+				or die "$output/$file: $!\n";
+			print $fh $p->{$script}{script};
+			close($fh);
+			print SPEC " -f $file";
+		}
+		print SPEC "\n";
 	}
 	if ($p->{files}) {
 		print SPEC "\%files -n $p->{name}\n";
