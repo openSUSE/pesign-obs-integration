@@ -58,8 +58,7 @@ for rpm in %_sourcedir/*.rpm; do
 	case "$(rpm -qp --qf '%%{name}/%%{arch}' "$rpm")" in
 	*-32bit/x86_64 | *-32bit/s390x | *-32bit/ppc64 | \
 	*-64bit/ppc | *-x86/ia64)
-		arch=$(rpm -qp --qf '%%{arch}' "$rpm")
-		mkdir "%_rpmdir/$arch"
+		mkdir -p "%_topdir/OTHER"
 		cp "$rpm" "$_"
 		continue
 	esac
