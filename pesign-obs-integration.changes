@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Tue Feb 12 15:42:22 CET 2013 - mls@suse.de
+
+- reduce debugging as pesign is now fixed
+
+-------------------------------------------------------------------
+Tue Feb 12 12:33:41 CET 2013 - mls@suse.de
+
+- add a bit of debug output to find out why the kernel signatures
+  are bad
+
+-------------------------------------------------------------------
 Wed Feb  6 13:24:14 CET 2013 - mls@suse.de
 
 - switch to normal brp hook
