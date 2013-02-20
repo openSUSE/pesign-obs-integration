@@ -50,7 +50,10 @@ if test -z "$RPM_BUILD_ROOT"; then
 	RPM_BUILD_ROOT=/
 fi
 
-mkdir -p "$output"
+if ! mkdir -p "$output"; then
+	echo "$0: warning: $output cannot be created, giving up" >&2
+	exit 0
+fi
 cert=$RPM_SOURCE_DIR/_projectcert.crt
 if test -e "$cert"; then
 	echo "Using signing certificate $cert"

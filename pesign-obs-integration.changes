@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 20 09:16:24 UTC 2013 - mmarek@suse.cz
+
+- Do not fail the build if %_topdir/OTHER cannot be created
+
+-------------------------------------------------------------------
 Wed Feb 13 14:51:47 UTC 2013 - mmarek@suse.cz
 
 - Version 8
