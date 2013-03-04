@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar  4 16:08:34 UTC 2013 - mmarek@suse.cz
+
+- Version 9
+- Add support for triggers (bnc#806737)
+
+-------------------------------------------------------------------
 Wed Feb 20 09:16:24 UTC 2013 - mmarek@suse.cz
 
 - Do not fail the build if %_topdir/OTHER cannot be created

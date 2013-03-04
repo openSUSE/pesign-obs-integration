@@ -23,7 +23,7 @@ Name:           pesign-obs-integration
 Summary:        Macros and scripts to sign the kernel and bootloader
 License:        GPL-2.0
 Group:          Development/Tools/Other
-Version:        8.0
+Version:        9.0
 Release:        0.<RELEASE15>
 Requires:       openssl mozilla-nss-tools
 %ifarch %ix86 x86_64 ia64
