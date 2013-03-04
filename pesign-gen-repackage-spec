@@ -63,6 +63,37 @@ sub query_array {
 	return @res;
 }
 
+sub query_multiline_array {
+	my ($rpm, $tag) = @_;
+	my @res;
+	my $delim = "|||"; # XXX - dangerous
+
+	my $format = "[$delim\\n\%{$tag}\\n]";
+	open(my $fh, '-|', "rpm", "-qp", "--qf", $format, $rpm)
+		or die "rpm: $!\n";
+	my $line = <$fh>;
+	return unless $line;
+	chomp($line);
+	return if $line eq "(none)";
+	die "Expected \"$delim\" at beginning of rpm output, got \"$line\""
+		if $line ne $delim;
+	my $cur = "";
+	while ($line = <$fh>) {
+		chomp($line);
+		if ($line eq $delim) {
+			$cur = "" if $cur eq "\n";
+			push(@res, $cur);
+			$cur = "";
+		} else {
+			$cur .= $line . "\n";
+		}
+	}
+	$cur = "" if $cur eq "\n";
+	push(@res, $cur);
+	close($fh);
+	return @res;
+}
+
 sub query_single {
 	my ($rpm, $tag) = @_;
 	my $res;
@@ -159,6 +190,22 @@ sub load_package {
 			script => $s,
 		};
 	}
+	my @triggers = query_array($rpm, qw(triggertype triggerscriptprog triggerconds));
+	my @triggerscripts = query_multiline_array($rpm, "triggerscripts");
+	if (scalar(@triggers) != scalar(@triggerscripts)) {
+		die "# of %%{triggertype} tags (" . scalar(@triggers) .
+		") != # of %%{triggerscripts} tags (" . scalar(@triggerscripts)
+		. ")";
+	}
+	for (my $i = 0; $i < scalar(@triggers); $i++) {
+		$res{triggers} ||= [];
+		push(@{$res{triggers}}, {
+				type =>   $triggers[$i]->[0],
+				interp => $triggers[$i]->[1],
+				conds =>  $triggers[$i]->[2],
+				script => $triggerscripts[$i],
+		});
+	}
 	open(my $fh, '-|', "rpm", "-qp", "--changelog", $rpm) or die "rpm: $!\n";
 	{
 		local $/ = undef;
@@ -176,6 +223,17 @@ sub quote {
 
 	$text =~ s/%/%%/g;
 	return $text;
+}
+
+sub print_script {
+	my ($file, $script) = @_;
+
+	return unless $script->{script};
+	open(my $fh, '>', "$output/$file")
+		or die "$output/$file: $!\n";
+	print $fh $script->{script};
+	close($fh);
+	print SPEC " -f $file";
 }
 
 sub print_package {
@@ -212,15 +270,15 @@ sub print_package {
 	for my $script (keys(%script2tag)) {
 		next unless $p->{$script};
 		print SPEC "\%$script -p $p->{$script}{interp} -n $p->{name}";
-		if ($p->{$script}{script}) {
-			my $file = "$script-$p->{name}";
-			open(my $fh, '>', "$output/$file")
-				or die "$output/$file: $!\n";
-			print $fh $p->{$script}{script};
-			close($fh);
-			print SPEC " -f $file";
-		}
+		print_script("$script-$p->{name}", $p->{$script});
 		print SPEC "\n";
+	}
+	my $i = 0;
+	for my $trigger (@{$p->{triggers}}) {
+		print SPEC "\%trigger$trigger->{type} -p $trigger->{interp} -n $p->{name}";
+		print_script("trigger$i-$p->{name}", $trigger);
+		print SPEC " -- $trigger->{conds}\n";
+		$i++;
 	}
 	if ($p->{files}) {
 		print SPEC "\%files -n $p->{name}\n";
