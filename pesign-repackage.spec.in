@@ -51,6 +51,14 @@ for rpm in %_sourcedir/*.rpm; do
 	*.src.rpm | *.nosrc.rpm)
 		cp "$rpm" %_srcrpmdir/
 		continue
+		;;
+	# Do not repackage debuginfo packages (bnc#806637)
+	*-debuginfo-*.rpm | *-debugsource-*.rpm)
+		dir=%_rpmdir/$(rpm -qp --qf '%%{arch}' "$rpm")
+		mkdir -p "$dir"
+		cp "$rpm" "$dir"
+		continue
+		;;
 	esac
 	# do not repackage baselibs packages
 	# FIXME: needs more generic test (if architecture has different
