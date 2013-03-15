@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 15 06:19:39 UTC 2013 - coolo@suse.com
+
+- correct the license of the generated package to fix build
+
+-------------------------------------------------------------------
 Tue Mar  5 08:23:48 UTC 2013 - mmarek@suse.cz
 
 - Do not repackage debuginfo package (bnc#806637)
