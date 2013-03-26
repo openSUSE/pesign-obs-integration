@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 26 06:19:45 UTC 2013 - glin@suse.com
+
+- Calculate the digest of the padded data section to be consistent
+  with the output file (bnc#808594, bnc#811325)
+
+-------------------------------------------------------------------
 Tue Mar  5 08:23:48 UTC 2013 - mmarek@suse.cz
 
 - Do not repackage debuginfo package (bnc#806637)
