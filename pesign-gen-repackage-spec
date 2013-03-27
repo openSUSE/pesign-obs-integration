@@ -28,6 +28,8 @@ use Fcntl qw(:mode :seek);
 
 my $directory;
 my $output = ".";
+my $cert_subpackage;
+my $kmp_basename;
 my @rpms;
 
 $ENV{LC_ALL} = "en_US.UTF-8";
@@ -36,6 +38,7 @@ GetOptions(
 	"help|h" => sub { print $USAGE; exit; },
 	"directory|d=s" => \$directory,
 	"output|o=s" => \$output,
+	"cert-subpackage|c=s" => \$cert_subpackage,
 ) or die $USAGE;
 @rpms = @ARGV;
 if (!@rpms) {
@@ -155,7 +158,7 @@ sub load_package {
 	my @files;
 	my @list = query_array($rpm, qw(filenames fileflags filemodes fileusername filegroupname filesizes filemtimes filelinktos));
 	for my $file (@list) {
-		push(@files, {
+		my $new = {
 				name   => $file->[0],
 				flags  => $file->[1],
 				mode   => $file->[2],
@@ -164,7 +167,11 @@ sub load_package {
 				size   => $file->[5],
 				mtime  => $file->[6],
 				target => $file->[7],
-		});
+		};
+		push(@files, $new);
+		if ($new->{name} =~ /\.ko$/ && S_ISREG($new->{mode})) {
+			$res{is_kmp} = 1;
+		}
 	}
 	$res{files} = \@files;
 	while (my ($dep, $tag) = each(%dep2tag)) {
@@ -263,6 +270,9 @@ sub print_package {
 	print SPEC "BuildArch: noarch\n" if $p->{arch} eq "noarch";
 	for my $dep (keys(%dep2tag)) {
 		print_deps($dep, $p->{$dep});
+	}
+	if ($cert_subpackage && $p->{is_kmp}) {
+		print SPEC "Requires: $kmp_basename-ueficert\n";
 	}
 	print SPEC "\%description -n $p->{name}\n";
 	print SPEC quote($p->{description}) . "\n\n";
@@ -424,11 +434,49 @@ if (!exists($packages{$main_name})) {
 }
 $packages{$main_name}->{nosource} = $nosrc ? 1 : 0;
 
+# Find out the basename of <name>-kmp-<flavor>, falling back to the
+# main package name
+for my $p (values(%packages)) {
+	next unless $p->{is_kmp};
+	(my $n = $p->{name}) =~ s/-kmp-.*//;
+	$kmp_basename = $n unless $kmp_basename;
+	if ($n ne $kmp_basename) {
+		$kmp_basename = undef;
+		last;
+	}
+}
+$kmp_basename = $main_name unless $kmp_basename;
+
 open(SPEC, '>', "$output/repackage.spec") or die "$output/repackage.spec: $!\n";
 print_package($packages{$main_name}, 1);
 for my $p (values(%packages)) {
 	next if $p->{name} eq $main_name;
 	print_package($p, 0);
+}
+if ($cert_subpackage) {
+	my $certdir = "/etc/uefi/certs";
+	my $certs = "";
+	if (-d "$directory/$certdir") {
+		opendir(my $dh, "$directory/$certdir") or die "$directory/$certdir";
+		while (my $cert = readdir($dh)) {
+			next if $cert =~ /^\.\.?$/;
+			if ($cert !~ /\.crt$/) {
+				print STDERR "warning: Ignoring $directory/$certdir/$cert (no .crt suffix)\n";
+				next;
+			}
+			$certs .= " $certdir/$cert";
+		}
+	}
+	if (!$certs) {
+		print STDERR "warning: --cert-subpackage specified, but no certs found in $directory/$certdir\n";
+	}
+	local $/ = undef;
+	open(my $fh, '<', $cert_subpackage) or die "$cert_subpackage: $!\n";
+	my $template = <$fh>;
+	close($fh);
+	$template =~ s/\%{-n\*}/$kmp_basename/g;
+	$template =~ s/\@CERTS\@/$certs/g;
+	print SPEC $template;
 }
 print SPEC "\%changelog\n";
 print SPEC quote($packages{$main_name}->{changelog});
