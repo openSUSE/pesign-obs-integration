@@ -37,6 +37,7 @@ Source4:        brp-99-pesign
 Source5:        COPYING
 Source6:        README
 Source7:        kernel-sign-file
+Source8:        modsign-repackage
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
@@ -56,6 +57,8 @@ cd %_sourcedir
 install  pesign-gen-repackage-spec kernel-sign-file %buildroot/usr/lib/rpm/pesign
 install  brp-99-pesign %buildroot/usr/lib/rpm/brp-suse.d
 install -m644 pesign-repackage.spec.in %buildroot/usr/lib/rpm/pesign
+mkdir -p %buildroot/usr/bin
+install modsign-repackage %buildroot/usr/bin/
 if test -e _projectcert.crt; then
 	openssl x509 -inform PEM -in _projectcert.crt \
 		-outform DER -out %buildroot/usr/lib/rpm/pesign/pesign-cert.x509
@@ -66,6 +69,7 @@ fi
 %files
 %defattr(-,root,root)
 %doc COPYING README
+/usr/bin/modsign-repackage
 /usr/lib/rpm/*
 
 %changelog

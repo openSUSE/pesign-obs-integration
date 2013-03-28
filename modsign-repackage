@@ -1,0 +1,142 @@
+#!/bin/bash
+# Script to sign kernel modules and create new RPM packages with these
+# modules. Uses pesign-gen-repackage-spec for the repackaging.
+#
+# Copyright (c) 2013 SUSE Linux Products GmbH, Nuernberg, Germany.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+
+USAGE="$0 --key <private key> --certificate <x509 cert> rpm ..."
+
+options=`getopt -o hk:c: --long help,key:,certificate: -- "$@"`
+if test $? -ne 0; then
+	echo "$USAGE" >&2
+	exit 1
+fi
+eval set -- "$options"
+key=
+cert=
+while :; do
+	case "$1" in
+	-k|--key)
+		key=$2
+		shift 2
+		;;
+	-c|--certificate)
+		cert=$2
+		shift 2
+		;;
+	-h|--help)
+		echo "$USAGE"
+		exit
+		;;
+	--)
+		shift
+		break
+	esac
+done
+if test -z "$key" -o -z "$cert"; then
+	echo "$0: The --key and --certificate options are mandatory" >&2
+	echo "$USAGE" >&2
+	exit 1
+fi
+if test "$#" -eq 0; then
+	echo "$0: No packages specified" >&2
+	echo "$USAGE" >&2
+	exit 1
+fi
+
+workdir="$PWD/rpm-files.$$"
+buildroot="$workdir/buildroot"
+rpmdir=RPMS
+srpmdir=SRPMS
+disturl=
+rpms=()
+rm -rf "$workdir"
+mkdir "$workdir" || exit
+mkdir -p "$rpmdir" "$srpmdir" || exit
+mkdir "$buildroot"
+echo "Unpacking original RPMs..."
+for rpm; do
+	# XXX: Use a common script in pesign-repackage.spec.in and here
+	case "$rpm" in
+	*.src.rpm | *.nosrc.rpm)
+		cp "$rpm" "$srpmdir/"
+		continue
+		;;
+	# Do not repackage debuginfo packages (bnc#806637)
+	*-debuginfo-*.rpm | *-debugsource-*.rpm)
+		dir="$rpmdir/$(rpm -qp --qf '%{arch}' "$rpm")"
+		mkdir -p "$dir"
+		cp "$rpm" "$dir"
+		continue
+		;;
+	esac
+	# do not repackage baselibs packages
+	# FIXME: needs more generic test (if architecture has different
+	# bitness => skip)
+	case "$(rpm -qp --qf '%{name}/%{arch}' "$rpm")" in
+	*-32bit/x86_64 | *-32bit/s390x | *-32bit/ppc64 | \
+	*-64bit/ppc | *-x86/ia64)
+		mkdir -p "$rpmdir/$(rpm -qp --qf '%{arch}')/"
+		cp "$rpm" "$_"
+		continue
+	esac
+	rpm2cpio "$rpm" | (cd "$buildroot"; cpio -idm --quiet) || exit
+	d=$(rpm -qp --qf '%{disturl}' "$rpm")
+	if test -z "$disturl"; then
+		disturl=$d
+	fi
+	if test "$disturl" != "$d"; then
+		echo "Error: packages have different disturl: $d vs $disturl"
+		exit 1
+	fi
+	rpms=("${rpms[@]}" "$rpm")
+done
+set -e
+echo "Signing kernel modules..."
+for module in $(find "$buildroot" -type f -name '*.ko'); do
+	/usr/lib/rpm/pesign/kernel-sign-file \
+		sha256 "$key" "$cert" "$module"
+done
+# Add the certificate
+mkdir -p "$buildroot/etc/uefi/certs"
+h=$(openssl x509 -inform DER -fingerprint -noout -in "$cert")
+filename=/etc/uefi/certs/$(echo "$h" | \
+	sed -rn 's/^SHA1 Fingerprint=//; T; s/://g; s/(.{8}).*/\1/p').crt
+cp "$cert" "$buildroot/$filename"
+
+echo "Generating new specfile..."
+if ! test -e /usr/lib/rpm/kernel-cert-subpackage; then
+	echo "/usr/lib/rpm/kernel-cert-subpackage missing" >&2
+	echo "please install the kernel-source package" >&2
+	exit 1
+fi
+/usr/lib/rpm/pesign/pesign-gen-repackage-spec \
+	--cert-subpackage=/usr/lib/rpm/kernel-cert-subpackage \
+	--directory="$buildroot" --output="$workdir" "${rpms[@]}"
+echo "Running rpmbuild..."
+rpmbuild --define "buildroot $buildroot" --define "disturl $disturl" \
+	--define "_builddir $workdir" \
+	--define "_suse_insert_debug_package %{nil}" \
+	--define "_rpmdir $rpmdir" \
+	-bb "$workdir/repackage.spec" >"$workdir/log" 2>&1
+grep 'RPMS/.*\.rpm$' "$workdir/log"
+echo "Cleaning up $workdir..."
+rm -r "$workdir"
+echo "Done."
+exit 0
+
+
