@@ -68,6 +68,23 @@ sub read_file($)
     return $contents;
 }
 
+sub openssl_pipe($$) {
+	my ($input, $cmd) = @_;
+	my ($pid, $res);
+
+	$pid = open2(*read_from, *write_to, $cmd) || die $cmd;
+	binmode write_to;
+	print write_to $input || die "pipe to $cmd";
+	close(write_to) || die "pipe to $cmd";
+
+	binmode read_from;
+	read(read_from, $res, 4096) || die "pipe from $cmd";
+	close(read_from) || die "pipe from $cmd";
+	waitpid($pid, 0) || die;
+	die "$cmd died: $?" if ($? >> 8);
+	return $res;
+}
+
 ###############################################################################
 #
 # First of all, we have to parse the X.509 certificate to find certain details
@@ -358,6 +375,26 @@ if ($dgst eq "sha1") {
     die "Unknown hash algorithm: $dgst\n";
 }
 
+my $unsigned_module = read_file($module);
+
+my $magic_number = $sign_fw ?
+    "~Linux firmware signature~\n" :
+    "~Module signature appended~\n";
+my $magic_len = length($magic_number);
+my $info_len = 12;
+
+# Truncate existing signarure, if any
+if (!$sign_fw && substr($unsigned_module, -$magic_len) eq $magic_number) {
+	my $info = substr($unsigned_module, -$magic_len - $info_len, $info_len);
+	my ($name_len, $key_len, $sig_len) = unpack("xxxCCxxxN", $info);
+	my $subtract = $name_len + $key_len + $sig_len + $info_len + $magic_len;
+	if ($subtract > length($unsigned_module)) {
+		die "$module: Existing signature is malformed\n";
+	}
+	$unsigned_module = substr($unsigned_module, 0,
+		length($unsigned_module) - $subtract);
+}
+
 my $signature;
 if ($signature_file) {
 	$signature = read_file($signature_file);
@@ -365,43 +402,30 @@ if ($signature_file) {
 	#
 	# Generate the digest and read from openssl's stdout
 	#
-	my $digest;
-	$digest = readpipe("openssl dgst -$dgst -binary $module") || die "openssl dgst";
+	my $digest = openssl_pipe($unsigned_module,
+		"openssl dgst -$dgst -binary");
 
 	#
 	# Generate the binary signature, which will be just the integer that
 	# comprises the signature with no metadata attached.
 	#
-	my $pid;
-	$pid = open2(*read_from, *write_to,
-		     "openssl rsautl -sign -inkey $private_key -keyform PEM") ||
-	    die "openssl rsautl";
-	binmode write_to;
-	print write_to $prologue . $digest || die "pipe to openssl rsautl";
-	close(write_to) || die "pipe to openssl rsautl";
-
-	binmode read_from;
-	read(read_from, $signature, 4096) || die "pipe from openssl rsautl";
-	close(read_from) || die "pipe from openssl rsautl";
-	waitpid($pid, 0) || die;
-	die "openssl rsautl died: $?" if ($? >> 8);
+	$signature = openssl_pipe($prologue . $digest,
+		     "openssl rsautl -sign -inkey $private_key -keyform PEM");
 }
 $signature = pack("n", length($signature)) . $signature,
 
 #
 # Build the signed binary
 #
-my $unsigned_module = read_file($module);
-
-my $magic_number = $sign_fw ?
-    "~Linux firmware signature~\n" :
-    "~Module signature appended~\n";
-
 my $info = pack("CCCCCxxxN",
 		$algo, $hash, $id_type,
 		length($signers_name),
 		length($key_identifier),
 		length($signature));
+# Make sure that $info_len value used above matches reality
+if (length($info) != $info_len) {
+	die "Signature info size changed ($info_len -> @{[length($info)]}";
+}
 
 if ($verbose) {
     print "Size of unsigned $mode_name: ", length($unsigned_module), "\n";
