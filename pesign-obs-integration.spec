@@ -15,9 +15,8 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-# norootforbuild
-# needssslcertforbuild
 
+# needssslcertforbuild
 
 Name:           pesign-obs-integration
 Summary:        Macros and scripts to sign the kernel and bootloader
@@ -25,7 +24,8 @@ License:        GPL-2.0
 Group:          Development/Tools/Other
 Version:        9.0
 Release:        0.<RELEASE15>
-Requires:       openssl mozilla-nss-tools
+Requires:       mozilla-nss-tools
+Requires:       openssl
 %ifarch %ix86 x86_64 ia64
 Requires:       pesign
 %endif

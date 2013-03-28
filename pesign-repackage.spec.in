@@ -29,7 +29,7 @@ BuildRequires:  openssl mozilla-nss-tools
 %ifarch %ix86 x86_64 ia64
 BuildRequires:  pesign
 %endif
-License:        GPLv
+License:        GPL-2.0
 Group:          Development/Tools/Other
 Summary:        Spec file to rebuild RPMs with signatures
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -117,7 +117,7 @@ for sig in "${sigs[@]}"; do
 		infile=${sig%.sig}
 		cpio -i --to-stdout ${infile#./} <%_sourcedir/@NAME@.cpio.rsasign > ${infile}.sattrs
 		test -s ${infile}.sattrs || exit 1
-		ohash=$(pesign -n "$nss_db" -h -i "$f")
+		ohash=$(pesign -n "$nss_db" -h -P -i "$f")
 		pesign -n "$nss_db" -c cert -i "$f" -o "$f.tmp" -d sha256 -I "${infile}.sattrs" -R "$sig"
 		rm -f "${infile}.sattrs"
 		mv "$f.tmp" "$f"
