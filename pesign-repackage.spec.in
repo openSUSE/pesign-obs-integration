@@ -54,9 +54,8 @@ for rpm in %_sourcedir/*.rpm; do
 		;;
 	# Do not repackage debuginfo packages (bnc#806637)
 	*-debuginfo-*.rpm | *-debugsource-*.rpm)
-		dir=%_rpmdir/$(rpm -qp --qf '%%{arch}' "$rpm")
-		mkdir -p "$dir"
-		cp "$rpm" "$dir"
+		mkdir -p "%_topdir/OTHER"
+		cp "$rpm" "$_"
 		continue
 		;;
 	esac
