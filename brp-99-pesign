@@ -22,7 +22,10 @@
 
 set -e
 
-files=${BRP_PESIGN_FILES}
+files="*.ko /lib/firmware"
+if test -n "$BRP_PESIGN_FILES"; then
+	filles=${BRP_PESIGN_FILES}
+fi
 output=
 while test $# -gt 0; do
 	case "$1" in

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan  6 22:08:41 UTC 2014 - mmarek@suse.cz
+
+- Default to BRP_PESIGN_FILES="*.ko /lib/firmware" (bnc#857599).
+
+-------------------------------------------------------------------
 Mon Jan  6 16:35:30 UTC 2014 - mmarek@suse.cz
 
 - Add --signatures=<directory> option to modsign-repackage
