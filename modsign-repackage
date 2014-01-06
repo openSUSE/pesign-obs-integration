@@ -20,7 +20,7 @@
 
 USAGE="$0 --key <private key> --certificate <x509 cert> rpm ..."
 
-options=`getopt -o hk:c: --long help,key:,certificate: -- "$@"`
+options=`getopt -o hk:c:s: --long help,key:,certificate:,signatures: -- "$@"`
 if test $? -ne 0; then
 	echo "$USAGE" >&2
 	exit 1
@@ -28,6 +28,7 @@ fi
 eval set -- "$options"
 key=
 cert=
+sig_dir=
 while :; do
 	case "$1" in
 	-k|--key)
@@ -36,6 +37,10 @@ while :; do
 		;;
 	-c|--certificate)
 		cert=$2
+		shift 2
+		;;
+	-s|--signatures)
+		sig_dir=$2
 		shift 2
 		;;
 	-h|--help)
@@ -47,13 +52,18 @@ while :; do
 		break
 	esac
 done
-if test -z "$key" -o -z "$cert"; then
-	echo "$0: The --key and --certificate options are mandatory" >&2
-	echo "$USAGE" >&2
-	exit 1
+err=
+if test -n "$key" -a -n "$sig_dir"; then
+	err="Cannot use both --key and --signatures"
+elif test -z "$key" -a -z "$sig_dir"; then
+	err="Please specify either --key or --signatures"
+elif test -z "$cert"; then
+	err="Please specify --certificate"
+elif test "$#" -eq 0; then
+	err="No packages specified"
 fi
-if test "$#" -eq 0; then
-	echo "$0: No packages specified" >&2
+if test -n "$err"; then
+	echo "$0: $err" >&2
 	echo "$USAGE" >&2
 	exit 1
 fi
@@ -107,9 +117,20 @@ for rpm; do
 done
 set -e
 echo "Signing kernel modules..."
-for module in $(find "$buildroot" -type f -name '*.ko'); do
-	/usr/lib/rpm/pesign/kernel-sign-file \
-		sha256 "$key" "$cert" "$module"
+for module in $(find "$buildroot" -type f -name '*.ko' -printf '%P\n'); do
+	if test -n "$key"; then
+		/usr/lib/rpm/pesign/kernel-sign-file \
+			sha256 "$key" "$cert" "$buildroot/$module"
+	else
+		raw_sig="$sig_dir/$module.sig"
+		if test ! -e "$raw_sig"; then
+			echo "$module.sig not found in $sig_dir" >&2
+			exit 1
+		fi
+		/usr/lib/rpm/pesign/kernel-sign-file \
+			-s "$raw_sig" sha256 "$cert" "$buildroot/$module"
+	fi
+
 done
 # Add the certificate
 mkdir -p "$buildroot/etc/uefi/certs"
