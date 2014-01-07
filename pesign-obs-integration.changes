@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan  7 09:50:58 UTC 2014 - mmarek@suse.cz
+
+- Fix a typo in the last change.
+
+-------------------------------------------------------------------
 Mon Jan  6 22:08:41 UTC 2014 - mmarek@suse.cz
 
 - Default to BRP_PESIGN_FILES="*.ko /lib/firmware" (bnc#857599).
