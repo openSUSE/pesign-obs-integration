@@ -23,7 +23,7 @@
 set -e
 
 files="*.ko /lib/firmware"
-if test -n "$BRP_PESIGN_FILES"; then
+if test -n "${BRP_PESIGN_FILES+x}"; then
 	files=${BRP_PESIGN_FILES}
 fi
 output=

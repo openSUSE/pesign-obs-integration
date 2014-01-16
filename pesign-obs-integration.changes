@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan 16 15:12:22 UTC 2014 - mmarek@suse.cz
+
+- Do not sign any files if BRP_PESIGN_FILES is set not an empty
+  string (bnc#857599).
+
+-------------------------------------------------------------------
 Tue Jan  7 09:50:58 UTC 2014 - mmarek@suse.cz
 
 - Fix a typo in the last change.
