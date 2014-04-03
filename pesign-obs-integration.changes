@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr  3 12:01:54 CEST 2014 - ro@suse.de
+
+- pesign-gen-repackage-spec: switch to new rpm style handling
+  of weak dependencies 
+
+-------------------------------------------------------------------
 Thu Jan 16 15:12:22 UTC 2014 - mmarek@suse.cz
 
 - Do not sign any files if BRP_PESIGN_FILES is set not an empty
