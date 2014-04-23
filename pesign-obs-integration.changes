@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 23 21:48:04 UTC 2014 - mmarek@suse.com
+
+- Regenerate the HMAC checksum when signing and EFI binary with
+  a checksum (fate#316930, bnc#856310).
+
+-------------------------------------------------------------------
 Wed Apr 23 21:38:42 UTC 2014 - mmarek@suse.com
 
 - Update README.

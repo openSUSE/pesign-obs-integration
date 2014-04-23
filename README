@@ -24,5 +24,6 @@ builds new RPMs with signed files. The supported file types are:
 
 /lib/firmware/* - Detached signature in $file.sig
 *.ko            - Signature appended to the module
-efi binaries    - Signature embedded in a header
+efi binaries    - Signature embedded in a header. If a HMAC checksum named
+                  .$file.hmac exists, it is regenerated
 

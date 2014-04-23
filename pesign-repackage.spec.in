@@ -125,6 +125,11 @@ for sig in "${sigs[@]}"; do
 		    echo "hash mismatch error: $ohash $nhash"
 		    exit 1
 		fi
+		# Regenerate the HMAC if it exists
+		hmac="${f%%/*}/.${f##*/}.hmac"
+		if test -e "$hmac"; then
+			/usr/lib/rpm/pesign/gen-hmac "$f"
+		fi
 		;;
 	*)
 		echo "Warning: unhandled signature: $sig" >&2
