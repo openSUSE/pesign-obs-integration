@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 23 21:38:42 UTC 2014 - mmarek@suse.com
+
+- Update README.
+
+-------------------------------------------------------------------
 Thu Jan 16 15:12:22 UTC 2014 - mmarek@suse.cz
 
 - Do not sign any files if BRP_PESIGN_FILES is set not an empty
