@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 23 22:28:05 UTC 2014 - mmarek@suse.com
+
+- Do not store the buildroot in the .*.hmac file.
+
+-------------------------------------------------------------------
 Wed Apr 23 21:48:04 UTC 2014 - mmarek@suse.com
 
 - Regenerate the HMAC checksum when signing and EFI binary with

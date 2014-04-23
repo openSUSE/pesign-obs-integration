@@ -3,7 +3,29 @@
 use strict;
 use warnings;
 
-my $fn  =shift @ARGV || die "$0: specify the filename to checksum on the commandline";
-my $hmacfn = $fn;
-$hmacfn =~ s|([^/]*)$|.$1.hmac|;
-system("sha512hmac $fn > $hmacfn");
+use Getopt::Long;
+
+my $USAGE = "Usage: $0 [-r <build root>] <file>\n";
+
+my $buildroot = "";
+GetOptions("r|root=s" => \$buildroot) or die $USAGE;
+if (scalar(@ARGV) != 1) {
+	die $USAGE;
+}
+if ($buildroot) {
+	$buildroot .= "/";
+}
+
+my $fn = shift @ARGV;
+my $out = `sha512hmac "$buildroot$fn"`;
+if ($?) {
+	exit 1;
+}
+my @t = split(" ", $out);
+my $hmac = $t[0];
+
+(my $hmacfn = "$buildroot$fn") =~ s|([^/]*)$|.$1.hmac|;
+open(my $fd, '>', $hmacfn) or die "$0: Cannot open $hmacfn: $!\n";
+print $fd "$hmac  $fn\n";
+close($fd);
+exit 0;
