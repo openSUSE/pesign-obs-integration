@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 23 19:49:09 UTC 2014 - mmarek@suse.cz
+
+- Add /usr/lib/rpm/pesign/gen-hmac tool to generate a hmac checksum
+  for a given file (fate#316930, bnc#856310).
+
+-------------------------------------------------------------------
 Thu Apr  3 12:01:54 CEST 2014 - ro@suse.de
 
 - pesign-gen-repackage-spec: switch to new rpm style handling

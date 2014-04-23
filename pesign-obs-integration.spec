@@ -38,6 +38,7 @@ Source5:        COPYING
 Source6:        README
 Source7:        kernel-sign-file
 Source8:        modsign-repackage
+Source9:        gen-hmac
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
@@ -54,7 +55,7 @@ cp %_sourcedir/{COPYING,README} .
 
 mkdir -p %buildroot/usr/lib/rpm/brp-suse.d %buildroot/usr/lib/rpm/pesign
 cd %_sourcedir
-install  pesign-gen-repackage-spec kernel-sign-file %buildroot/usr/lib/rpm/pesign
+install  pesign-gen-repackage-spec kernel-sign-file gen-hmac %buildroot/usr/lib/rpm/pesign
 install  brp-99-pesign %buildroot/usr/lib/rpm/brp-suse.d
 install -m644 pesign-repackage.spec.in %buildroot/usr/lib/rpm/pesign
 mkdir -p %buildroot/usr/bin

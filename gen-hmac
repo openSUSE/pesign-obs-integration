@@ -1,0 +1,9 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my $fn  =shift @ARGV || die "$0: specify the filename to checksum on the commandline";
+my $hmacfn = $fn;
+$hmacfn =~ s|([^/]*)$|.$1.hmac|;
+system("sha512hmac $fn > $hmacfn");
