@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 23 21:38:42 UTC 2014 - mmarek@suse.com
+
+- Update README.
+
+-------------------------------------------------------------------
 Wed Apr 23 19:49:09 UTC 2014 - mmarek@suse.cz
 
 - Add /usr/lib/rpm/pesign/gen-hmac tool to generate a hmac checksum
