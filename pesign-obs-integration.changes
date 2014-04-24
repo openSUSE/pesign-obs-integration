@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr 24 09:25:18 UTC 2014 - mmarek@suse.cz
+
+- Fix matching /boot and /lib/firmware in pesign-repackage.spec
+
+-------------------------------------------------------------------
 Wed Apr 23 22:28:05 UTC 2014 - mmarek@suse.com
 
 - Do not store the buildroot in the .*.hmac file.

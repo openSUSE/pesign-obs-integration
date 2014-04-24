@@ -105,14 +105,14 @@ certutil -A -d "$nss_db" -n cert -t CT,CT,CT -i "$cert"
 sigs=($(find -type f -name '*.sig' -printf '%%P\n'))
 for sig in "${sigs[@]}"; do
 	f=%buildroot/${sig%.sig}
-	case "$sig" in
+	case "/$sig" in
 	*.ko.sig)
 		/usr/lib/rpm/pesign/kernel-sign-file -s "$sig" sha256 "$cert" "$f"
 		;;
-	./lib/firmware/*.sig)
+	/lib/firmware/*.sig)
 		/usr/lib/rpm/pesign/kernel-sign-file -f -s "$sig" sha256 "$cert" "$f"
 		;;
-	./boot/* | *.efi.sig)
+	/boot/* | *.efi.sig)
 		infile=${sig%.sig}
 		cpio -i --to-stdout ${infile#./} <%_sourcedir/@NAME@.cpio.rsasign > ${infile}.sattrs
 		test -s ${infile}.sattrs || exit 1
