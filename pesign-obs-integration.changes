@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul  3 14:01:24 UTC 2014 - mmarek@suse.cz
+
+- Drop support for signing firmware files (bnc#867199)
+
+-------------------------------------------------------------------
 Thu Apr 24 09:25:18 UTC 2014 - mmarek@suse.cz
 
 - Fix matching /boot and /lib/firmware in pesign-repackage.spec
