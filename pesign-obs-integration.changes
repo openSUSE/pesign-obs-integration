@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 28 14:14:39 UTC 2014 - mmarek@suse.cz
+
+- Use package's rpmlintrc files in the second build.
+
+-------------------------------------------------------------------
 Thu Jul  3 14:01:24 UTC 2014 - mmarek@suse.cz
 
 - Drop support for signing firmware files (bnc#867199)
