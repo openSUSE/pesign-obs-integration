@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 28 14:14:39 UTC 2014 - mmarek@suse.cz
+
+- Use package's rpmlintrc files in the second build (bnc#889626).
+
+-------------------------------------------------------------------
 Wed Apr 23 21:38:42 UTC 2014 - mmarek@suse.com
 
 - Update README.
