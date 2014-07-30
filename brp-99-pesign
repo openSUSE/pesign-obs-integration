@@ -72,7 +72,7 @@ sed "
 	}
 " /usr/lib/rpm/pesign/pesign-repackage.spec.in >"$output/pesign-repackage.spec"
 
-for rpmlintrc in $RPM_SOURCE_DIR/*-rpmlintrc; do
+for rpmlintrc in $RPM_SOURCE_DIR/*rpmlintrc; do
 	if test -e "$rpmlintrc"; then
 		cp "$rpmlintrc" "$output/"
 	fi

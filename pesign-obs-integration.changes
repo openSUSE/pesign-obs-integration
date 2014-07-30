@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 30 09:32:58 UTC 2014 - mmarek@suse.cz
+
+- Accept also rpmlintrc files without any <package>- prefix
+  (bnc#889626).
+
+-------------------------------------------------------------------
 Mon Jul 28 14:14:39 UTC 2014 - mmarek@suse.cz
 
 - Use package's rpmlintrc files in the second build (bnc#889626).
