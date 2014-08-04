@@ -43,6 +43,9 @@ Rebuilds RPMs with signatures
 
 %install
 
+# avoid loops
+export BRP_PESIGN_FILES=""
+
 pushd %buildroot
 disturl=
 rpms=()
