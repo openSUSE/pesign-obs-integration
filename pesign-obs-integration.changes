@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug 12 13:38:14 UTC 2014 - meissner@suse.com
+
+- switch gen-hmac to use fipscheck instead of sha256hmac
+
+-------------------------------------------------------------------
 Mon Aug  4 12:52:40 UTC 2014 - mmarek@suse.cz
 
 - Set BRP_PESIGN_FILES="" in the repackage build to avoid loops.

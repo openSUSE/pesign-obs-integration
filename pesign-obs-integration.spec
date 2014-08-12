@@ -24,6 +24,7 @@ License:        GPL-2.0
 Group:          Development/Tools/Other
 Version:        10.0
 Release:        0.<RELEASE15>
+Requires:       fipscheck
 Requires:       mozilla-nss-tools
 Requires:       openssl
 %ifarch %ix86 x86_64 ia64
