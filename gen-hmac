@@ -20,16 +20,4 @@ my $fn = shift @ARGV;
 
 system("fipshmac $buildroot$fn");
 
-#my $out = `sha512hmac "$buildroot$fn"`;
-#if ($?) {
-#	exit 1;
-#}
-#my @t = split(" ", $out);
-#my $hmac = $t[0];
-
-#(my $hmacfn = "$buildroot$fn") =~ s|([^/]*)$|.$1.hmac|;
-#open(my $fd, '>', $hmacfn) or die "$0: Cannot open $hmacfn: $!\n";
-#print $fd "$hmac  $fn\n";
-#close($fd);
-
 exit 0;
