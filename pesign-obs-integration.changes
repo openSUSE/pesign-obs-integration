@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug 20 15:09:50 UTC 2014 - mmarek@suse.cz
+
+- brp-99-compress-vmlinux: Compress the vmlinux image after
+  find-debuginfo (bnc#880848, bnc#884459)
+
+-------------------------------------------------------------------
 Tue Aug 12 13:38:14 UTC 2014 - meissner@suse.com
 
 - switch gen-hmac to use fipscheck instead of sha256hmac

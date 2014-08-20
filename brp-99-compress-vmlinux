@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Compress the /boot/vmlinux image after find-debuginfo.sh has done its job
+
+set -e
+
+case "$RPM_PACKAGE_NAME" in
+kernel-*)
+	;;
+*)
+	exit 0
+esac
+for f in $RPM_BUILD_ROOT/boot/vmlinux-*; do
+	if test -e "$f" -a -e "$f.gz"; then
+		echo "gzip $f"
+		# Deliberately not using gzip -n; the vmlinux image has a
+		# predictable timestamp (bnc#880848#c20)
+		gzip -k -9 -f "$f"
+	fi
+done
+

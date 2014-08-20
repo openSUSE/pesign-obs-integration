@@ -40,6 +40,7 @@ Source6:        README
 Source7:        kernel-sign-file
 Source8:        modsign-repackage
 Source9:        gen-hmac
+Source10:       brp-99-compress-vmlinux
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
@@ -56,8 +57,12 @@ cp %_sourcedir/{COPYING,README} .
 
 mkdir -p %buildroot/usr/lib/rpm/brp-suse.d %buildroot/usr/lib/rpm/pesign
 cd %_sourcedir
-install  pesign-gen-repackage-spec kernel-sign-file gen-hmac %buildroot/usr/lib/rpm/pesign
-install  brp-99-pesign %buildroot/usr/lib/rpm/brp-suse.d
+install pesign-gen-repackage-spec kernel-sign-file gen-hmac %buildroot/usr/lib/rpm/pesign
+install brp-99-pesign %buildroot/usr/lib/rpm/brp-suse.d
+# brp-99-compress-vmlinux has nothing to do with signing. It is packaged in
+# pesign-obs-integration because this package is already used by the kernel
+# build
+install brp-99-compress-vmlinux %buildroot/usr/lib/rpm/brp-suse.d
 install -m644 pesign-repackage.spec.in %buildroot/usr/lib/rpm/pesign
 mkdir -p %buildroot/usr/bin
 install modsign-repackage %buildroot/usr/bin/
