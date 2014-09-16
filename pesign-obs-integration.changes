@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 16 17:08:36 CEST 2014 - mls@suse.de
+
+- fall back to project cert in the followup spec if it
+  exists
+
+-------------------------------------------------------------------
 Wed Sep  3 01:41:37 CEST 2014 - ro@suse.de
 
 - sanitize release line in specfile
