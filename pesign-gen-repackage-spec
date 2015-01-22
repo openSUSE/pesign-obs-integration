@@ -268,7 +268,7 @@ sub print_package {
 		print SPEC "$tag: " . quote($p->{$tag}) . "\n";
 	}
 	print SPEC "BuildArch: noarch\n" if $p->{arch} eq "noarch";
-	for my $dep (keys(%dep2tag)) {
+	for my $dep (sort(keys(%dep2tag))) {
 		print_deps($dep, $p->{$dep});
 	}
 	if ($cert_subpackage && $p->{is_kmp}) {
@@ -277,7 +277,7 @@ sub print_package {
 	print SPEC "\%description -n $p->{name}\n";
 	print SPEC quote($p->{description}) . "\n\n";
 
-	for my $script (keys(%script2tag)) {
+	for my $script (sort(keys(%script2tag))) {
 		next unless $p->{$script};
 		print SPEC "\%$script -p $p->{$script}{interp} -n $p->{name}";
 		print_script("$script-$p->{name}", $p->{$script});
@@ -421,7 +421,7 @@ if ($sourcerpm !~ /^(.+)-([^-]+)-([^-]+)\.(no)?src\.rpm$/) {
 my ($main_name, $main_ver, $main_rel, $nosrc) = ($1, $2, $3, $4);
 if (!exists($packages{$main_name})) {
 	# create an empty main package
-	my $first = (values(%packages))[0];
+	my $first = (sort(keys(%packages)))[0];
 	$packages{$main_name} = {
 		name => $main_name,
 		version => $main_ver,
@@ -429,7 +429,7 @@ if (!exists($packages{$main_name})) {
 	};
 	for my $tag (qw(description changelog arch), @simple_tags) {
 		next if $packages{$main_name}->{$tag};
-		$packages{$main_name}->{$tag} = $first->{$tag};
+		$packages{$main_name}->{$tag} = $packages{$first}->{$tag};
 	}
 }
 $packages{$main_name}->{nosource} = $nosrc ? 1 : 0;
@@ -449,9 +449,9 @@ $kmp_basename = $main_name unless $kmp_basename;
 
 open(SPEC, '>', "$output/repackage.spec") or die "$output/repackage.spec: $!\n";
 print_package($packages{$main_name}, 1);
-for my $p (values(%packages)) {
-	next if $p->{name} eq $main_name;
-	print_package($p, 0);
+for my $name (sort(keys(%packages))) {
+	next if $name eq $main_name;
+	print_package($packages{$name}, 0);
 }
 if ($cert_subpackage) {
 	my $certdir = "/etc/uefi/certs";

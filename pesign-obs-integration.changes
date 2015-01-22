@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 22 15:55:26 UTC 2015 - mmarek@suse.cz
+
+- Sort the parts of the repackage spec file for easier debugging.
+
+-------------------------------------------------------------------
 Mon Aug  4 12:52:40 UTC 2014 - mmarek@suse.cz
 
 - Set BRP_PESIGN_FILES="" in the repackage build to avoid loops.
