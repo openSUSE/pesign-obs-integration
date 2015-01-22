@@ -90,6 +90,9 @@ cpio -idm <%_sourcedir/@NAME@.cpio.rsasign.sig
 cat >cert.crt <<EOF
 @CERT@
 EOF
+if test "$(wc -l <cert.crt)" -le 1 -a -s %_sourcedir/_projectcert.crt ; then
+	cp %_sourcedir/_projectcert.crt cert.crt
+fi
 if test "$(wc -l <cert.crt)" -gt 1; then
 	openssl x509 -inform PEM -in cert.crt -outform DER -out cert.x509
 	cert=cert.x509
