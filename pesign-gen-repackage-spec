@@ -152,7 +152,7 @@ sub load_package {
 		$res{$tag} = query_single($rpm, $tag);
 	}
 	my @files;
-	my @list = query_array($rpm, qw(filenames fileflags filemodes fileusername filegroupname filesizes filemtimes filelinktos));
+	my @list = query_array($rpm, qw(filenames fileflags filemodes fileusername filegroupname filesizes filemtimes filelinktos fileverifyflags));
 	for my $file (@list) {
 		my $new = {
 				name   => $file->[0],
@@ -163,6 +163,7 @@ sub load_package {
 				size   => $file->[5],
 				mtime  => $file->[6],
 				target => $file->[7],
+				verify => $file->[8],
 		};
 		push(@files, $new);
 		if ($new->{name} =~ /\.ko$/ && S_ISREG($new->{mode})) {
@@ -343,6 +344,18 @@ my %filetypes = (
 	ghost     => (1 << 6),
 );
 
+my %verifyflags = (
+	filedigest=> (1 << 0),
+	size      => (1 << 1),
+	link      => (1 << 2),
+	user      => (1 << 3),
+	group     => (1 << 4),
+	mtime     => (1 << 5),
+	mode      => (1 << 6),
+	rdev      => (1 << 7),
+	caps      => (1 << 8),
+);
+
 sub print_files {
 	my $files = shift;
 
@@ -384,6 +397,15 @@ sub print_files {
 		if (S_ISLNK($f->{mode})) {
 			# perl core does not provide lutimes()/utimensat()
 			system("touch", "-h", "-d\@$f->{mtime}", $path);
+		}
+		my $verify_attrs = "";
+		for my $flag (sort(keys(%verifyflags))) {
+			if (!($f->{verify} & $verifyflags{$flag})) {
+				$verify_attrs .= "$flag ";
+			}
+		}
+		if ($verify_attrs) {
+			$attrs .= "%verify(not $verify_attrs) ";
 		}
 
 		print SPEC "$attrs " . quote($f->{name}) . "\n";

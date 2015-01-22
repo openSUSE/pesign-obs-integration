@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 22 15:56:41 UTC 2015 - mmarek@suse.cz
+
+- Add support for file verify flags (bnc#905420).
+
+-------------------------------------------------------------------
 Thu Jan 22 15:55:26 UTC 2015 - mmarek@suse.cz
 
 - Sort the parts of the repackage spec file for easier debugging.
