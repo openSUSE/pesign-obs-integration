@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan  8 10:32:22 UTC 2016 - mmarek@suse.cz
+
+- Use "md5" instead of "filedigest" in %verify flags (bsc#961042).
+
+-------------------------------------------------------------------
 Thu Jan 22 15:56:41 UTC 2015 - mmarek@suse.cz
 
 - Add support for file verify flags (bnc#905420).
