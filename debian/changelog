@@ -1,0 +1,5 @@
+pesign-obs-integration (10.0) unstable; urgency=medium
+
+  * Initial Debian packaging.
+
+ -- Michal Marek <mmarek@suse.cz>  Tue, 31 Oct 2017 17:44:08 +0000

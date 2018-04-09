@@ -1,0 +1,29 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	rm -f pesign-cert.x509
+	dh_auto_clean
+
+override_dh_auto_build:
+	if test -e ../SOURCES/_projectcert.crt; then \
+		openssl x509 -inform PEM -in ../SOURCES/_projectcert.crt \
+		-outform DER -out pesign-cert.x509; \
+	fi
+	dh_auto_build
+
+override_dh_install:
+	dh_install pesign-gen-repackage-spec kernel-sign-file gen-hmac \
+		pesign-repackage.spec.in /usr/lib/rpm/pesign
+	dh_install brp-99-pesign brp-99-compress-vmlinux /usr/lib/rpm/brp-suse.d
+	dh_install modsign-repackage /usr/bin
+	if test -e pesign-cert.x509; then \
+		dh_install pesign-cert.x509 /usr/lib/rpm/pesign; \
+	fi
+	dh_install
