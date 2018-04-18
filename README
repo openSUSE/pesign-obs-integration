@@ -32,3 +32,7 @@ builds new RPMs with signed files. The supported file types are:
 efi binaries    - Signature embedded in a header. If a HMAC checksum named
                   .$file.hmac exists, it is regenerated
 
+Debian packages can use the dh-signobs debhelper to automate signing and
+repacking. Build-depend on dh-signobs and add --with signobs to the dh line
+in debian/rules to use the fully automated helper.
+Consult the dh_signobs manpage for more information.

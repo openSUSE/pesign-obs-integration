@@ -1,0 +1,6 @@
+usr/bin/dh_signobs usr/bin/dh_signobs_pack
+usr/bin/dh_signobs usr/bin/dh_signobs_unpack
+usr/bin/dh_signobs usr/bin/dh_signobs_getcert
+usr/share/man/man1/dh_signobs.1 usr/share/man/man1/dh_signobs_pack.1
+usr/share/man/man1/dh_signobs.1 usr/share/man/man1/dh_signobs_unpack.1
+usr/share/man/man1/dh_signobs.1 usr/share/man/man1/dh_signobs_getcert.1

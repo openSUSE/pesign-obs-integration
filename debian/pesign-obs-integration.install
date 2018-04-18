@@ -1,0 +1,7 @@
+pesign-gen-repackage-spec usr/lib/rpm/pesign/
+kernel-sign-file usr/lib/rpm/pesign/
+gen-hmac usr/lib/rpm/pesign/
+pesign-repackage.spec.in usr/lib/rpm/pesign/
+brp-99-pesign usr/lib/rpm/brp-suse.d/
+brp-99-compress-vmlinux usr/lib/rpm/brp-suse.d/
+modsign-repackage usr/bin/

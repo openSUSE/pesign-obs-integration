@@ -1,0 +1,2 @@
+dh_signobs usr/bin/
+signobs.pm usr/share/perl5/Debian/Debhelper/Sequence
