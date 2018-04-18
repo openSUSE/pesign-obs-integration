@@ -19,11 +19,10 @@ override_dh_auto_build:
 	dh_auto_build
 
 override_dh_install:
-	dh_install pesign-gen-repackage-spec kernel-sign-file gen-hmac \
-		pesign-repackage.spec.in /usr/lib/rpm/pesign
-	dh_install brp-99-pesign brp-99-compress-vmlinux /usr/lib/rpm/brp-suse.d
-	dh_install modsign-repackage /usr/bin
-	if test -e pesign-cert.x509; then \
-		dh_install pesign-cert.x509 /usr/lib/rpm/pesign; \
-	fi
 	dh_install
+	if test -e pesign-cert.x509; then \
+		dh_install -p pesign-obs-integration pesign-cert.x509 /usr/lib/rpm/pesign; \
+	fi
+
+override_dh_auto_test:
+	shellcheck dh_signobs

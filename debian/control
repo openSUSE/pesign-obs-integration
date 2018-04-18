@@ -2,7 +2,7 @@ Source: pesign-obs-integration
 Section: devel
 Priority: optional
 Maintainer: Michal Marek <mmarek@suse.cz>
-Build-Depends: debhelper (>= 7), openssl
+Build-Depends: debhelper (>= 7), openssl, shellcheck
 Standards-Version: 3.9.8
 
 Package: pesign-obs-integration
@@ -11,3 +11,12 @@ Depends: ${perl:Depends}, ${misc:Depends}, libnss3-tools, openssl, pesign
 Description: Automate signing EFI binaries and kernel modules on OBS
  This package provides scripts and rpm macros to automate signing of the
  boot loader, kernel and kernel modules in the openSUSE Buildservice.
+
+Package: dh-signobs
+Architecture: all
+Enhances: debhelper
+Depends: ${misc:Depends}, debhelper, cpio, libnss3-tools, jq, pesign,
+ pesign-obs-integration, openssl
+Description: Debian Helper for EFI signing on OBS
+ Adds a helper sequence to dh to send EFI signatures to OBS and to
+ re-package them using the templates.
