@@ -1,12 +1,18 @@
 Signing kernel modules and EFI binaries in the Open Build Service
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Packages that need to sign files during build should add the following lines
+RPM packages that need to sign files during build should add the following lines
 to the specfile
 
 # needssslcertforbuild
 export BRP_PESIGN_FILES='pattern...'
 BuildRequires: pesign-obs-integration
+
+Debian packages need to add the following line to the Source stanza in the
+debian/control file, which will add "Obs: needssslcertforbuild" to the generated
+.dsc file:
+
+XS-Obs: needssslcertforbuild
 
 The "# needssslcertforbuild" comment tells the buildservice to store the
 signing certificate in %_sourcedir/_projectcert.crt. At the end of the
