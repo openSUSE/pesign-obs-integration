@@ -84,6 +84,12 @@ for rpm in %_sourcedir/*.rpm; do
 	rpms=("${rpms[@]}" "$rpm")
 done
 popd
+for log in %_sourcedir/*.log; do
+	if test -e "$log"; then
+		mkdir -p "%_topdir/OTHER"
+		cp "$log" "$_"
+	fi
+done
 mkdir rsasigned
 pushd rsasigned
 cpio -idm <%_sourcedir/@NAME@.cpio.rsasign.sig
@@ -106,14 +112,14 @@ mkdir nss-db
 nss_db=$PWD/nss-db
 echo foofoofoo > "$nss_db/passwd"
 certutil -N -d "$nss_db" -f "$nss_db/passwd"
-certutil -A -d "$nss_db" -n cert -t CT,CT,CT -i "$cert"
+certutil -A -d "$nss_db" -f "$nss_db/passwd" -n cert -t CT,CT,CT -i "$cert"
 
 sigs=($(find -type f -name '*.sig' -printf '%%P\n'))
 for sig in "${sigs[@]}"; do
 	f=%buildroot/${sig%.sig}
 	case "/$sig" in
 	*.ko.sig)
-		/usr/lib/rpm/pesign/kernel-sign-file -s "$sig" sha256 "$cert" "$f"
+		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
 		;;
 	/boot/* | *.efi.sig)
 		infile=${sig%.sig}

@@ -1,7 +1,7 @@
 #
 # spec file for package pesign-obs-integration
 #
-# Copyright (c) 2014 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2018 SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -14,9 +14,8 @@
 
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
-
-
 # needssslcertforbuild
+
 
 Name:           pesign-obs-integration
 Summary:        Macros and scripts to sign the kernel and bootloader
@@ -27,7 +26,7 @@ Release:        0
 Requires:       fipscheck
 Requires:       mozilla-nss-tools
 Requires:       openssl
-%ifarch %ix86 x86_64 ia64
+%ifarch %ix86 x86_64 ia64 aarch64
 Requires:       pesign
 %endif
 BuildRequires:  openssl

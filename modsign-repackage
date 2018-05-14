@@ -117,21 +117,30 @@ for rpm; do
 done
 set -e
 echo "Signing kernel modules..."
+if test ! -e "$cert.pub"; then
+	openssl x509 -in "$cert" -inform DER -pubkey -noout > "$cert.pub"
+fi
 for module in $(find "$buildroot" -type f -name '*.ko' -printf '%P\n'); do
 	if test -n "$key"; then
 		/usr/lib/rpm/pesign/kernel-sign-file \
-			sha256 "$key" "$cert" "$buildroot/$module"
+			-i pkcs7 sha256 "$key" "$cert" "$buildroot/$module"
 	else
 		raw_sig="$sig_dir/$module.sig"
 		if test ! -e "$raw_sig"; then
 			echo "$module.sig not found in $sig_dir" >&2
 			exit 1
 		fi
+		ver_err=$(openssl rsautl -verify -inkey "$cert.pub" -pubin -in "$raw_sig" 2>&1 | grep -i error)
+		if [ -n "$ver_err" ]; then
+			echo "$raw_sig signature can not be decrypted by $cert" >&2
+			exit 1
+		fi
 		/usr/lib/rpm/pesign/kernel-sign-file \
-			-s "$raw_sig" sha256 "$cert" "$buildroot/$module"
+			-i pkcs7 -s "$raw_sig" sha256 "$cert" "$buildroot/$module"
 	fi
 
 done
+rm "$cert.pub"
 # Add the certificate
 mkdir -p "$buildroot/etc/uefi/certs"
 h=$(openssl x509 -inform DER -fingerprint -noout -in "$cert")
