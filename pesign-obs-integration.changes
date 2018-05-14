@@ -1,4 +1,46 @@
 -------------------------------------------------------------------
+Thu Feb 22 09:16:35 UTC 2018 - glin@suse.com
+
+- Provide password file for 'certutil -A' due to the change in
+  mozilla-nss 3.35 (boo#1082235)
+
+-------------------------------------------------------------------
+Wed Nov  8 04:35:57 UTC 2017 - jlee@suse.com
+
+- Modified modsign-repackage, using certificate to try to decrypt
+  the signature of kernel module. It can be used to verify the
+  integrity of signature.
+
+-------------------------------------------------------------------
+Wed Sep 27 10:53:39 UTC 2017 - jlee@suse.com
+
+- Michael Schröder improved the original kernel-sign-file script to
+  support PKCS#7 kernel module signing. Replacing sign-file.c with
+  new kernel-sign-file script. (bsc#1049122)
+
+-------------------------------------------------------------------
+Sun Sep 24 09:20:31 UTC 2017 - coolo@suse.com
+
+- escape regexp in pesign-gen-repackage-spec for perl 5.26
+
+-------------------------------------------------------------------
+Wed Sep  6 02:47:26 UTC 2017 - jlee@suse.com
+
+- To support PKCS#7 kernel module signing, copy sign-file.c from
+  SLE-15 v4.12 kernel source to replace the kernel-sign-file script
+  to align upstream. (bsc#1049122) 
+
+-------------------------------------------------------------------
+Tue Nov 29 08:29:36 UTC 2016 - mmarek@suse.cz
+
+- Copy over any *.log files from the first build (bsc#1012422)
+
+-------------------------------------------------------------------
+Thu Mar  3 10:17:32 UTC 2016 - glin@suse.com
+
+- Add aarch64 support since pesign also build on aarch64
+
+-------------------------------------------------------------------
 Thu Jan 22 15:56:41 UTC 2015 - mmarek@suse.cz
 
 - Add support for file verify flags (bnc#905420).
