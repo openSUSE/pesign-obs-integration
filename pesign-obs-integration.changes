@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jun  4 10:23:24 UTC 2018 - glin@suse.com
+
+- Switch to tarball release
+
+-------------------------------------------------------------------
 Thu Feb 22 09:16:35 UTC 2018 - glin@suse.com
 
 - Provide password file for 'certutil -A' due to the change in

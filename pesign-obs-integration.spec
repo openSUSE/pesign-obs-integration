@@ -19,7 +19,7 @@
 
 Name:           pesign-obs-integration
 Summary:        Macros and scripts to sign the kernel and bootloader
-License:        GPL-2.0
+License:        GPL-2.0-only
 Group:          Development/Tools/Other
 Version:        10.0
 Release:        0
@@ -31,15 +31,7 @@ Requires:       pesign
 %endif
 BuildRequires:  openssl
 Url:            http://en.opensuse.org/openSUSE:UEFI_Image_File_Sign_Tools
-Source2:        pesign-repackage.spec.in
-Source3:        pesign-gen-repackage-spec
-Source4:        brp-99-pesign
-Source5:        COPYING
-Source6:        README
-Source7:        kernel-sign-file
-Source8:        modsign-repackage
-Source9:        gen-hmac
-Source10:       brp-99-compress-vmlinux
+Source:         https://github.com/openSUSE/%{name}/releases/download/%{version}/%{name}_%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
@@ -47,15 +39,13 @@ This package provides scripts and rpm macros to automate signing of the
 boot loader, kernel and kernel modules in the openSUSE Buildservice.
 
 %prep
-%setup -cT
-cp %_sourcedir/{COPYING,README} .
+%setup -D -n %{name}-%{version}
 
 %build
 
 %install
 
 mkdir -p %buildroot/usr/lib/rpm/brp-suse.d %buildroot/usr/lib/rpm/pesign
-cd %_sourcedir
 install pesign-gen-repackage-spec kernel-sign-file gen-hmac %buildroot/usr/lib/rpm/pesign
 install brp-99-pesign %buildroot/usr/lib/rpm/brp-suse.d
 # brp-99-compress-vmlinux has nothing to do with signing. It is packaged in
@@ -74,7 +64,8 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc COPYING README
+%license COPYING
+%doc README
 /usr/bin/modsign-repackage
 /usr/lib/rpm/*
 
