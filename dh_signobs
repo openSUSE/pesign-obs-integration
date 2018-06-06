@@ -79,6 +79,8 @@ then
 		mkdir -p "../OTHER/$SOURCE_PKG/debian/signatures"
 		mkdir -p "../OTHER/$SOURCE_PKG/debian/source"
 		echo "3.0 (native)" > "../OTHER/$SOURCE_PKG/debian/source/format"
+		# lintian will complain that there is no source, but it's in the previous build
+		echo "$SOURCE_PKG: source-is-missing" > "../OTHER/$SOURCE_PKG/debian/source/lintian-overrides"
 		echo "9" > "../OTHER/$SOURCE_PKG/debian/compat"
 		cp debian/copyright "../OTHER/$SOURCE_PKG/debian/"
 		# copy the changelog and add a new entry, changing the version to native
