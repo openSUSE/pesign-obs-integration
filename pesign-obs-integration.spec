@@ -32,14 +32,14 @@ Requires:       pesign
 BuildRequires:  openssl
 Url:            http://en.opensuse.org/openSUSE:UEFI_Image_File_Sign_Tools
 Source:         https://github.com/openSUSE/%{name}/releases/download/%{version}/%{name}_%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+BuildRoot:      %{_tmppath}/%{name}-build
 
 %description
 This package provides scripts and rpm macros to automate signing of the
 boot loader, kernel and kernel modules in the openSUSE Buildservice.
 
 %prep
-%setup -D -n %{name}-%{version}
+%setup -D -n %{name}
 
 %build
 
