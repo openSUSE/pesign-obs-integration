@@ -84,7 +84,7 @@ then
 		# copy the changelog and add a new entry, changing the version to native
 		cp debian/changelog "../OTHER/$SOURCE_PKG/debian/"
 		sed -i "1i\\ " "../OTHER/$SOURCE_PKG/debian/changelog"
-		sed -i "1i\\ -- OBS signing service <obssign@localhost>  $date" "../OTHER/$SOURCE_PKG/debian/changelog"
+		sed -i "1i\\ -- OBS signing service <obssign@obs.service>  $date" "../OTHER/$SOURCE_PKG/debian/changelog"
 		sed -i "1i\\ " "../OTHER/$SOURCE_PKG/debian/changelog"
 		sed -i "1i\\  * Sign version $version_binary" "../OTHER/$SOURCE_PKG/debian/changelog"
 		sed -i "1i\\ " "../OTHER/$SOURCE_PKG/debian/changelog"
@@ -96,7 +96,7 @@ then
 Source: $SOURCE_PKG
 Section: admin
 Priority: optional
-Maintainer: OBS signing service <obssign@localhost>
+Maintainer: OBS signing service <obssign@obs.service>
 Standards-Version: 3.9.8
 Build-Depends: debhelper (>= 9~), dh-signobs
 
