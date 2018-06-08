@@ -31,7 +31,7 @@ Requires:       pesign
 %endif
 BuildRequires:  openssl
 Url:            http://en.opensuse.org/openSUSE:UEFI_Image_File_Sign_Tools
-Source:         https://github.com/openSUSE/%{name}/releases/download/%{version}/%{name}_%{version}.tar.gz
+Source:         %{name}_%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-build
 
 %description
