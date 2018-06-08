@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun  8 03:08:29 UTC 2018 - glin@suse.com
+
+- Remove the unstable source url
+- Update the debian scripts
+
+-------------------------------------------------------------------
 Mon Jun  4 10:23:24 UTC 2018 - glin@suse.com
 
 - Switch to tarball release
