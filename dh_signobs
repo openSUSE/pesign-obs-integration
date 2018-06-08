@@ -212,6 +212,12 @@ EOF
 				# generate rule set the version from the unsigned one
 				sed -i "s|#GENCONTROLMARKER|dh_gencontrol -p ${f%%/*} -- -v\$(shell cat debian/${f%%/*}.version); rm -f debian/${f%%/*}.version\\n\\t#GENCONTROLMARKER|" "../OTHER/$SOURCE_PKG/debian/rules"
 			fi
+
+			# special case: the conffiles lists the file in /etc, but it does
+			# get regenerated and it does not prune duplicates, triggering a
+			# Lintian error, so remove the old ones
+			echo "	rm -f debian/*.conffiles" >> "../OTHER/$SOURCE_PKG/debian/rules"
+
 			# finally copy the signed binary in the package build dir
 			# note that by convention bootloaders are renamed to .signed but
 			# kernel modules and images are not
