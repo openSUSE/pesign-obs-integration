@@ -191,15 +191,15 @@ EOF
 				# to ensure the signed package is identical to the unsigned one,
 				# simply extract the content of the unsigned one, the signed
 				# binaries will simply overwrite the unsigned ones
-				echo "	dpkg -x ../SOURCES/${f%%/*}*.deb debian/${f%%/*}" >> "../OTHER/$SOURCE_PKG/debian/rules"
-				echo "	dpkg -e ../SOURCES/${f%%/*}*.deb debian/${f%%/*}/DEBIAN" >> ."./OTHER/$SOURCE_PKG/debian/rules"
+				echo "	dpkg -x ../SOURCES/${f%%/*}_*.deb debian/${f%%/*}" >> "../OTHER/$SOURCE_PKG/debian/rules"
+				echo "	dpkg -e ../SOURCES/${f%%/*}_*.deb debian/${f%%/*}/DEBIAN" >> ."./OTHER/$SOURCE_PKG/debian/rules"
 				echo "	for script in debian/${f%%/*}/DEBIAN/*; do mv \$\$script debian/${f%%/*}.\$\${script##*/}; done" >> ."./OTHER/$SOURCE_PKG/debian/rules"
 				# then delete the unsigned package, which the unpack step will copy
 				# over
-				echo "	rm -f ../DEBS/${f%%/*}*.deb" >> "../OTHER/$SOURCE_PKG/debian/rules"
+				echo "	rm -f ../DEBS/${f%%/*}_*.deb" >> "../OTHER/$SOURCE_PKG/debian/rules"
 
 				# generate rules to extract unsigned package control files
-				sed -i "s|fi #CONTROLMARKER|mkdir -p debian/${f%%/*}/DEBIAN; dpkg -e ../SOURCES/${f%%/*}*.deb debian/${f%%/*}/DEBIAN; \\\\\\n\\tfi #CONTROLMARKER|" "../OTHER/$SOURCE_PKG/debian/rules"
+				sed -i "s|fi #CONTROLMARKER|mkdir -p debian/${f%%/*}/DEBIAN; dpkg -e ../SOURCES/${f%%/*}_*.deb debian/${f%%/*}/DEBIAN; \\\\\\n\\tfi #CONTROLMARKER|" "../OTHER/$SOURCE_PKG/debian/rules"
 				# save version for gencontrol - pkg/DEBIAN will be cleaned up in-between
 				sed -i "s@fi #CONTROLMARKER@grep 'Version:' debian/${f%%/*}/DEBIAN/control | sed 's/Version:\\\\s*//' > debian/${f%%/*}.version; \\\\\\n\\tfi #CONTROLMARKER@" "../OTHER/$SOURCE_PKG/debian/rules"
 				# generate rule to prune unwanted metadata from unsigned control file
