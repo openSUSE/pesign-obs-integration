@@ -296,6 +296,9 @@ sub print_package {
 
 # /usr/include/rpm/rpmds.h
 my %deptypes = (
+	posttrans => (1 <<  5),
+	pretrans  => (1 <<  7),
+	interp => (1 <<  8),
 	pre    => (1 <<  9),
 	post   => (1 << 10),
 	preun  => (1 << 11),
