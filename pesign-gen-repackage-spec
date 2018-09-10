@@ -304,6 +304,8 @@ my %deptypes = (
 	preun  => (1 << 11),
 	postun => (1 << 12),
 	verify => (1 << 13),
+	requires => (1 << 14),
+	provides => (1 << 15),
 );
 my %depflags = (
 	"<"    => (1 << 1),
