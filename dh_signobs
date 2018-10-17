@@ -72,7 +72,10 @@ then
 		SOURCE_PKG="$(dpkg-parsechangelog -S Source)-signed"
 		distribution="$(dpkg-parsechangelog -S Distribution)"
 		urgency="$(dpkg-parsechangelog -S Urgency)"
-		date="$(dpkg-parsechangelog -S Date)"
+		# lintian will complain that the date is the same, so bump by 1 second,
+		# we want to avoid build time dates to keep the build reproducible
+		# requires dpkg-dev >= 1.18.8 for "-S Timestamp"
+		date="$(date --rfc-2822 --date=@$(($(dpkg-parsechangelog -S Timestamp) + 1)))"
 		version_binary="$(dpkg-parsechangelog -S Version)"
 		# make the source package native by removing the "-" separator
 		version_mangled="$(dpkg-parsechangelog -S Version | tr '-' '+')+signed"
