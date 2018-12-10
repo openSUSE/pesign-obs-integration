@@ -21,7 +21,7 @@ Name:           pesign-obs-integration
 Summary:        Macros and scripts to sign the kernel and bootloader
 License:        GPL-2.0-only
 Group:          Development/Tools/Other
-Version:        10.0
+Version:        10.1
 Release:        0
 Requires:       fipscheck
 Requires:       mozilla-nss-tools
@@ -33,6 +33,8 @@ BuildRequires:  openssl
 Url:            http://en.opensuse.org/openSUSE:UEFI_Image_File_Sign_Tools
 Source:         %{name}-%{version}.tar.xz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+# suse-module-tools <= 15.0.10 contains modsign-verify
+Conflicts:	suse-module-tools <= 15.0.10
 
 %description
 This package provides scripts and rpm macros to automate signing of the
@@ -55,6 +57,7 @@ install brp-99-compress-vmlinux %buildroot/usr/lib/rpm/brp-suse.d
 install -m644 pesign-repackage.spec.in %buildroot/usr/lib/rpm/pesign
 mkdir -p %buildroot/usr/bin
 install modsign-repackage %buildroot/usr/bin/
+install -pm 755 modsign-verify %buildroot/usr/bin/
 if test -e _projectcert.crt; then
 	openssl x509 -inform PEM -in _projectcert.crt \
 		-outform DER -out %buildroot/usr/lib/rpm/pesign/pesign-cert.x509
@@ -67,6 +70,7 @@ fi
 %license COPYING
 %doc README
 /usr/bin/modsign-repackage
+/usr/bin/modsign-verify
 /usr/lib/rpm/*
 
 %changelog
