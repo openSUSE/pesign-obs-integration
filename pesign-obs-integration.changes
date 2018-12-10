@@ -1,4 +1,35 @@
 -------------------------------------------------------------------
+Mon Dec 10 11:12:32 UTC 2018 - mwilck@suse.com
+
+- Update to version 10.0:
+  * Fix new Lintian Error from Debian 10
+  * Revert "rpm: forward a few more flags"
+  * rpm: forward a few more flags
+  * rpm: properly forward dep flags
+  * debhelper: restrict wildcard package unpacking
+  * debhelper: fix conffiles corner case
+  * Update the spec file to remove the download url
+  * spec: remove version from tarball path
+  * Fix Lintian Error: missing sources in generated repack
+  * Fix Lintian Error: change generated repack maintainer email
+
+-------------------------------------------------------------------
+Wed Oct 31 10:11:48 UTC 2018 - glin@suse.com
+
+- rpm: properly forward dep flags
+- Fix new Lintian Error from Debian 10
+
+-------------------------------------------------------------------
+Tue Jun 12 03:30:33 UTC 2018 - glin@suse.com
+
+- debhelper: restrict wildcard package unpacking 
+
+-------------------------------------------------------------------
+Mon Jun 11 03:17:37 UTC 2018 - glin@suse.com
+
+- debhelper: fix conffiles corner case
+
+-------------------------------------------------------------------
 Fri Jun  8 03:08:29 UTC 2018 - glin@suse.com
 
 - Remove the unstable source url
