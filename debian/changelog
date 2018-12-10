@@ -1,4 +1,4 @@
-pesign-obs-integration (10.0) unstable; urgency=medium
+pesign-obs-integration (10.1) unstable; urgency=medium
 
   * Initial Debian packaging.
 
