@@ -12,7 +12,7 @@
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
 
-# Please submit bugfixes or comments via http://bugs.opensuse.org/
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 # needssslcertforbuild
 
@@ -31,15 +31,15 @@ Requires:       pesign
 %endif
 BuildRequires:  openssl
 Url:            http://en.opensuse.org/openSUSE:UEFI_Image_File_Sign_Tools
-Source:         %{name}_%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-build
+Source:         %{name}-%{version}.tar.xz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
 This package provides scripts and rpm macros to automate signing of the
 boot loader, kernel and kernel modules in the openSUSE Buildservice.
 
 %prep
-%setup -D -n %{name}
+%setup -D
 
 %build
 
