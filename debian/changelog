@@ -1,3 +1,9 @@
+pesign-obs-integration (10.1) unstable; urgency=medium
+
+  * Update to 10.1
+
+ -- Gary Lin <glin@suse.com>  Tue, 11 Dec 2018 18:31:01 +0800
+
 pesign-obs-integration (10.0) unstable; urgency=medium
 
   * Initial Debian packaging.
