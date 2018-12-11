@@ -1,4 +1,25 @@
 -------------------------------------------------------------------
+Tue Dec 11 10:19:44 UTC 2018 - glin@suse.com
+- Version 10.1
+- Add modsign-verify for the signature verification (bsc#1118953)
+
+-------------------------------------------------------------------
+Wed Oct 31 10:11:48 UTC 2018 - glin@suse.com
+
+- rpm: properly forward dep flags
+- Fix new Lintian Error from Debian 10
+
+-------------------------------------------------------------------
+Tue Jun 12 03:30:33 UTC 2018 - glin@suse.com
+
+- debhelper: restrict wildcard package unpacking
+
+-------------------------------------------------------------------
+Mon Jun 11 03:17:37 UTC 2018 - glin@suse.com
+
+- debhelper: fix conffiles corner case
+
+-------------------------------------------------------------------
 Fri Jun  8 03:08:29 UTC 2018 - glin@suse.com
 
 - Remove the unstable source url
