@@ -6,7 +6,7 @@ Tue Dec 11 10:19:44 UTC 2018 - glin@suse.com
 -------------------------------------------------------------------
 Wed Oct 31 10:11:48 UTC 2018 - glin@suse.com
 
-- rpm: properly forward dep flags
+- rpm: properly forward dep flags (bsc#1114605)
 - Fix new Lintian Error from Debian 10
 
 -------------------------------------------------------------------
