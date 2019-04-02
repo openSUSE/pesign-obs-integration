@@ -345,6 +345,10 @@ my %filetypes = (
 	missingok => (1 << 3),
 	noreplace => (1 << 4),
 	ghost     => (1 << 6),
+	license   => (1 << 7),
+	readme    => (1 << 8),
+	pubkey    => (1 << 11),
+	artifact  => (1 << 12),
 );
 
 my %verifyflags = (
@@ -381,7 +385,9 @@ sub print_files {
 			}
 			$attrs .= "(" . join(",", @cfg_attrs) . ")" if @cfg_attrs;
 		}
-		$attrs .= "%doc " if $f->{flags} & $filetypes{doc};
+		for my $filetype (qw(doc license readme pubkey artifact)) {
+			$attrs .= "%$filetype " if $f->{flags} & $filetypes{$filetype};
+		}
 		if ($f->{flags} & $filetypes{ghost}) {
 			$attrs .= "%ghost ";
 			if (S_ISREG($f->{mode})) {
