@@ -1,4 +1,22 @@
 -------------------------------------------------------------------
+Fri May 17 14:00:08 UTC 2019 - Guillaume GARDET <guillaume.gardet@opensuse.org>
+
+- pesign is also available on %arm
+
+-------------------------------------------------------------------
+Tue Apr 16 03:53:05 UTC 2019 - Gary Ching-Pang Lin <glin@suse.com>
+
+- Drop 0002-Enable-find_provides-and-requires.patch due to the
+  build failure of virtualbox-guest-x11
+
+-------------------------------------------------------------------
+Thu Apr 11 03:45:03 UTC 2019 - Gary Ching-Pang Lin <glin@suse.com>
+
+- rpm: forward the missing rpm bits (bsc#1114605)
+  + 0001-Passthrough-license-tag.patch
+  + 0002-Enable-find_provides-and-requires.patch
+
+-------------------------------------------------------------------
 Tue Dec 11 10:19:44 UTC 2018 - glin@suse.com
 - Version 10.1
 - Add modsign-verify for the signature verification (bsc#1118953)

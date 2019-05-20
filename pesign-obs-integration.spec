@@ -1,7 +1,7 @@
 #
 # spec file for package pesign-obs-integration
 #
-# Copyright (c) 2018 SUSE LINUX GmbH, Nuernberg, Germany.
+# Copyright (c) 2019 SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -26,7 +26,7 @@ Release:        0
 Requires:       fipscheck
 Requires:       mozilla-nss-tools
 Requires:       openssl
-%ifarch %ix86 x86_64 ia64 aarch64
+%ifarch %ix86 x86_64 ia64 aarch64 %arm
 Requires:       pesign
 %endif
 BuildRequires:  openssl
