@@ -145,7 +145,8 @@ for sig in "${sigs[@]}"; do
 	esac
 done
 popd
-/usr/lib/rpm/pesign/pesign-gen-repackage-spec --directory=%buildroot "${rpms[@]}"
+/usr/lib/rpm/pesign/pesign-gen-repackage-spec @PESIGN_REPACKAGE_COMPRESS@ \
+	--directory=%buildroot "${rpms[@]}"
 rpmbuild --define "%%buildroot %buildroot" --define "%%disturl $disturl" \
 	 --define "%%_builddir $PWD" \
 	 --define "%_suse_insert_debug_package %%{nil}" -bb repackage.spec

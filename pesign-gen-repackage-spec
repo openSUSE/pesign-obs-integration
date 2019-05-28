@@ -30,6 +30,7 @@ my $directory;
 my $output = ".";
 my $cert_subpackage;
 my $kmp_basename;
+my $compress;
 my @rpms;
 
 $ENV{LC_ALL} = "en_US.UTF-8";
@@ -39,6 +40,7 @@ GetOptions(
 	"directory|d=s" => \$directory,
 	"output|o=s" => \$output,
 	"cert-subpackage|c=s" => \$cert_subpackage,
+	"compress|C=s" => \$compress,
 ) or die $USAGE;
 @rpms = @ARGV;
 if (!@rpms) {
@@ -417,7 +419,16 @@ sub print_files {
 			$attrs .= "%verify(not $verify_attrs) ";
 		}
 
-		print SPEC "$attrs " . quote($f->{name}) . "\n";
+		if ($compress eq "xz" &&
+		    $f->{name} =~ /\.ko$/ && S_ISREG($f->{mode})) {
+			system("xz", "-f", "-9", $path);
+			chmod($f->{mode}, $path . ".xz");
+			utime($f->{mtime}, $f->{mtime}, $path . ".xz");
+			print SPEC "$attrs " . quote($f->{name}) . ".xz\n";
+		} else {
+			print SPEC "$attrs " . quote($f->{name}) . "\n";
+		}
+
 		if (-e "$path.sig") {
 			print SPEC "$attrs " . quote($f->{name}) . ".sig\n";
 		}
