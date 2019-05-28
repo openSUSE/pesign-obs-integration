@@ -57,6 +57,13 @@ if ! mkdir -p "$output"; then
 	echo "$0: warning: $output cannot be created, giving up" >&2
 	exit 0
 fi
+
+if test "${BRP_PESIGN_COMPRESS_MODULE}" = "xz"; then
+	pesign_repackage_compress="--compress xz"
+else
+	pesign_repackage_compress=""
+fi
+
 cert=$RPM_SOURCE_DIR/_projectcert.crt
 if test -e "$cert"; then
 	echo "Using signing certificate $cert"
@@ -66,6 +73,7 @@ else
 fi
 sed "
 	s:@NAME@:$RPM_PACKAGE_NAME:g
+	s:@PESIGN_REPACKAGE_COMPRESS@:$pesign_repackage_compress:g
 	/@CERT@/ {
 		r $cert
 		d
