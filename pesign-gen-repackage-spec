@@ -30,7 +30,7 @@ my $directory;
 my $output = ".";
 my $cert_subpackage;
 my $kmp_basename;
-my $compress;
+my $compress = "";
 my @rpms;
 
 $ENV{LC_ALL} = "en_US.UTF-8";
