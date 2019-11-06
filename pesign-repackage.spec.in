@@ -84,10 +84,18 @@ for rpm in %_sourcedir/*.rpm; do
 	rpms=("${rpms[@]}" "$rpm")
 done
 popd
-for log in %_sourcedir/*.log; do
-	if test -e "$log"; then
+# Copy files other than the meta files and RPMs to %_topdir/OTHER
+OTHER_FILES=`find %_sourcedir/ -maxdepth 1 -type f \
+	-not -regex '.*\.\(rpm\|spec\|rsasign\|sig\|crt\)' \
+	-not -name "_buildenv" \
+	-not -name "_statistics" \
+	-not -name "logfile" \
+	-not -name "meta" \
+	-print`
+for file in $OTHER_FILES; do
+	if test -e "$file"; then
 		mkdir -p "%_topdir/OTHER"
-		cp "$log" "$_"
+		cp "$file" "$_"
 	fi
 done
 mkdir rsasigned
