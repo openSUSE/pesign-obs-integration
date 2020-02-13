@@ -148,6 +148,9 @@ for sig in "${sigs[@]}"; do
 			/usr/lib/rpm/pesign/gen-hmac -r %buildroot "/${sig%.sig}"
 		fi
 		;;
+	*stage3.bin.sig)
+		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
+		;;
 	*)
 		echo "Warning: unhandled signature: $sig" >&2
 	esac
