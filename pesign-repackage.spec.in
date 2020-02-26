@@ -130,6 +130,8 @@ for sig in "${sigs[@]}"; do
 		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
 		;;
 	/boot/* | *.efi.sig)
+%ifarch %ix86 x86_64 aarch64 %arm
+		# PE style signature injection
 		infile=${sig%.sig}
 		cpio -i --to-stdout ${infile#./} <%_sourcedir/@NAME@.cpio.rsasign > ${infile}.sattrs
 		test -s ${infile}.sattrs || exit 1
@@ -142,6 +144,10 @@ for sig in "${sigs[@]}"; do
 		    echo "hash mismatch error: $ohash $nhash"
 		    exit 1
 		fi
+%else
+		# appending to the file itself, e.g. for s390x.
+		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
+%endif
 		# Regenerate the HMAC if it exists
 		hmac="${f%%/*}/.${f##*/}.hmac"
 		if test -e "$hmac"; then
