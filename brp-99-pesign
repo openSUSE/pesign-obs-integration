@@ -117,7 +117,12 @@ for f in "${files[@]}"; do
 	mkdir -p "${dest%/*}"
 	case "$f" in
 	./boot/* | *.efi)
-		pesign --certdir="$nss_db" -i "$f" -E $dest
+		if [ -f /usr/bin/pesign ]; then
+			pesign --certdir="$nss_db" -i "$f" -E $dest
+		else
+			# Non PE architectures like s390x
+			cp "$f" "$dest"
+		fi
 		;;
 	*)
 		cp "$f" "$dest"
