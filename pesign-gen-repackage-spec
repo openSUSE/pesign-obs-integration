@@ -391,6 +391,7 @@ my %verifyflags = (
 
 sub print_files {
 	my $files = shift;
+	my @tocompress;
 
 	for my $f (@$files) {
 		my $path = "$directory/$f->{name}";
@@ -445,9 +446,9 @@ sub print_files {
 
 		if ($compress eq "xz" &&
 		    $f->{name} =~ /\.ko$/ && S_ISREG($f->{mode})) {
-			system("xz", "-f", "-9", $path);
-			chmod($f->{mode}, $path . ".xz");
-			utime($f->{mtime}, $f->{mtime}, $path . ".xz");
+			chmod($f->{mode}, $path);
+			utime($f->{mtime}, $f->{mtime}, $path);
+			push(@tocompress, $path);
 			print SPEC "$attrs " . quote($f->{name}) . ".xz\n";
 		} else {
 			print SPEC "$attrs " . quote($f->{name}) . "\n";
@@ -456,6 +457,15 @@ sub print_files {
 		if (-e "$path.sig") {
 			print SPEC "$attrs " . quote($f->{name}) . ".sig\n";
 		}
+	}
+
+	if ($#tocompress >= 0) {
+		my $m = "$output/modulelist.txt";
+		open(M, '>', $m) or die "$m: $!\n";
+		print M join("\n", @tocompress);
+		close(M);
+		system("xargs -a $m -t -P 4 -n 1 xz -f");
+		unlink($m);
 	}
 }
 
