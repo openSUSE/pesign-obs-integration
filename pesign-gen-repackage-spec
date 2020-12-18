@@ -494,10 +494,16 @@ if (!exists($packages{$main_name})) {
 		version => $main_ver,
 		release => $main_rel,
 	};
-	for my $tag (qw(description changelog arch), @simple_tags) {
+	for my $tag (qw(description changelog), @simple_tags) {
 		next if $packages{$main_name}->{$tag};
 		$packages{$main_name}->{$tag} = $packages{$first}->{$tag};
 	}
+	my $main_arch = "noarch";
+	for my $subpack (keys(%packages)) {
+	    my $cur_arch = $packages{$subpack}->{'arch'};
+	    $main_arch = $cur_arch if $cur_arch && $cur_arch ne "noarch";
+	}
+	$packages{$main_name}->{'arch'} = $main_arch unless $packages{$main_name}->{'arch'};
 }
 $packages{$main_name}->{nosource} = $nosrc ? 1 : 0;
 
