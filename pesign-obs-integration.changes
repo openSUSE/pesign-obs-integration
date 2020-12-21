@@ -1,4 +1,77 @@
 -------------------------------------------------------------------
+Mon Dec 21 03:50:35 UTC 2020 - Gary Ching-Pang Lin <glin@suse.com>
+
+- Update to version 10.2:
+  * Fix the wrongly created noarch subpackages
+    (issue#22, bsc#1180242)
+
+-------------------------------------------------------------------
+Wed Oct 21 12:44:19 UTC 2020 - dmueller@suse.com
+
+- Update to version 10.1+1602850462:
+  * Compress kernel modules in batch and in parallel
+  * Forward _binary_payload to the repackaged rpm (bsc#1175882)
+- remove 0001-Forward-_binary_payload-to-the-repackaged-rpm.patch,
+  parallel-compression.patch (upstream)
+
+-------------------------------------------------------------------
+Thu Oct 15 21:13:24 UTC 2020 - dmueller@suse.com
+
+- Sync from git master directly
+- drop 0001-Add-support-for-kernel-module-compression.patch
+  0001-Enable-find_provides-and-requires.patch
+  0001-Initialize-compress-variable.patch
+  0001-Keep-the-files-in-the-OTHER-directory.patch
+  0001-Passthrough-license-tag.patch
+  0001-brp-99-compress-vmlinux-support-xz-compressed-vmlinu.patch
+  0001-sign-stage3.bin-from-s390-tools-with-sign-files-bsc-.patch
+  pesign-sign-s390x-kernel.patch (upstream)
+- add parallel-compression.patch
+
+-------------------------------------------------------------------
+Wed Sep  2 03:39:46 UTC 2020 - Gary Ching-Pang Lin <glin@suse.com>
+
+- Add 0001-Forward-_binary_payload-to-the-repackaged-rpm.patch to
+  forward _binary_payload to the repackaged rpm (bsc#1175882)
+
+-------------------------------------------------------------------
+Fri Jul 17 07:25:34 UTC 2020 - Gary Ching-Pang Lin <glin@suse.com>
+
+- Add 0001-Enable-find_provides-and-requires.patch (bsc#1114605)
+  + Enable this patch again since virtualbox-kmp is split from
+    the main package so the customized %find_provides for
+    virtualbox-x11-guest won't be affected anymore.
+
+-------------------------------------------------------------------
+Wed Feb 26 13:35:18 UTC 2020 - Marcus Meissner <meissner@suse.com>
+
+- pesign-sign-s390x-kernel.patch: Sign also the non-PE (e.g. s390x)
+  kernels with just kernel-sign-file (bsc#1163524)
+
+-------------------------------------------------------------------
+Wed Feb 19 14:25:32 UTC 2020 - Marcus Meissner <meissner@suse.com>
+
+- 0001-sign-stage3.bin-from-s390-tools-with-sign-files-bsc-.patch
+  Hard code signing of stage3.bin of s390-tools (bsc#1163524)
+
+-------------------------------------------------------------------
+Wed Nov  6 09:58:34 UTC 2019 - Jiri Slaby <jslaby@suse.com>
+
+- 0001-brp-99-compress-vmlinux-support-xz-compressed-vmlinu.patch
+  to support xz-compressed vmlinux (bnc#1155921)
+
+-------------------------------------------------------------------
+Wed Nov  6 03:52:16 UTC 2019 - Gary Ching-Pang Lin <glin@suse.com>
+
+- 0001-Keep-the-files-in-the-OTHER-directory.patch to keep the
+  files in the OTHER directory (boo#1155474)
+
+-------------------------------------------------------------------
+Wed Sep  4 12:18:39 UTC 2019 - Michal Suchanek <msuchanek@suse.com>
+
+- Require pesign on arm (boo#1134303).
+
+-------------------------------------------------------------------
 Thu Aug  1 02:41:28 UTC 2019 - Gary Ching-Pang Lin <glin@suse.com>
 
 - Add 0001-Initialize-compress-variable.patch to initialize
