@@ -60,6 +60,10 @@ fi
 
 if test "${BRP_PESIGN_COMPRESS_MODULE}" = "xz"; then
 	pesign_repackage_compress="--compress xz"
+elif test "${BRP_PESIGN_COMPRESS_MODULE}" = "gzip"; then
+	pesign_repackage_compress="--compress gzip"
+elif test "${BRP_PESIGN_COMPRESS_MODULE}" = "zstd"; then
+	pesign_repackage_compress="--compress zstd"
 else
 	pesign_repackage_compress=""
 fi

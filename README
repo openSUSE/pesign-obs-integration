@@ -38,7 +38,7 @@ in debian/rules to use the fully automated helper.
 Consult the dh_signobs manpage for more information.
 
 When BRP_PESIGN_COMPRESS_MODULE is passed, the script tries to compress the
-kernel modules at the repackaging phase. Currently only xz format is supported.
+kernel modules at the repackaging phase. Currently xz, gzip and zstd format is supported.
 For enable the compression feature, put the following along with
 BRP_PESIGN_FILES setup:
 
