@@ -129,7 +129,7 @@ for sig in "${sigs[@]}"; do
 	*.ko.sig)
 		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
 		;;
-	/boot/* | *.efi.sig)
+	/boot/* | *.efi.sig | */lib/modules/*/vmlinu[xz].sig | */lib/modules/*/[Ii]mage.sig | */lib/modules/*/z[Ii]mage.sig)
 %ifarch %ix86 x86_64 aarch64 %arm
 		# PE style signature injection
 		infile=${sig%.sig}

@@ -11,6 +11,9 @@ kernel-*)
 	exit 0
 esac
 for f in $RPM_BUILD_ROOT/boot/vmlinux-*; do
+	if [ -L "$f" ]; then
+		f=`readlink -f "$f"`
+	fi
 	for compression in gz/gzip xz; do
 		if test -e "$f" -a -e "$f.${compression%/*}"; then
 			echo "${compression#*/} $f"
