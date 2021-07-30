@@ -25,6 +25,8 @@ my $USAGE = "Usage: $0 --directory <payload directory> rpm...\n";
 
 use Getopt::Long;
 use Fcntl qw(:mode :seek);
+use File::Basename qw(dirname);
+use File::Path qw(make_path);
 
 my $directory;
 my $output = ".";
@@ -431,6 +433,7 @@ sub print_files {
 		if ($f->{flags} & $filetypes{ghost}) {
 			$attrs .= "%ghost ";
 			if (S_ISREG($f->{mode})) {
+				make_path(dirname($path));
 				open(my $fh, '>', $path) or die "$path: $!\n";
 				if ($f->{size} > 0) {
 					sysseek($fh, $f->{size} - 1, SEEK_SET);
@@ -438,7 +441,10 @@ sub print_files {
 				}
 				close($fh);
 				utime($f->{mtime}, $f->{mtime}, $path);
+			} elsif (S_ISDIR($f->{mode})) {
+				make_path($path);
 			} elsif (S_ISLNK($f->{mode})) {
+				make_path(dirname($path));
 				symlink($f->{target}, $path);
 			}
 		}
