@@ -120,7 +120,7 @@ for f in "${files[@]}"; do
 	dest="$archive_dir/$f"
 	mkdir -p "${dest%/*}"
 	case "$f" in
-	./boot/* | *.efi.sig | */lib/modules/*/vmlinu[xz] | */lib/modules/*/[Ii]mage | */lib/modules/*/z[Ii]mage)
+	./boot/* | *.efi | */lib/modules/*/vmlinu[xz] | */lib/modules/*/[Ii]mage | */lib/modules/*/z[Ii]mage)
 		if [ -f /usr/bin/pesign ]; then
 			pesign --certdir="$nss_db" -i "$f" -E $dest
 		else
