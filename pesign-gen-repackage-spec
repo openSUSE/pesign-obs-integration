@@ -154,7 +154,7 @@ my %com2pl = (
 );
 
 # tags which are printed verbatim in the specfile
-my @simple_tags = qw(version release license group summary packager vendor
+my @simple_tags = qw(epoch version release license group summary packager vendor
                      url distribution);
 my @payload_tags = qw(payloadcompressor payloadflags);
 
