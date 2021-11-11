@@ -31,7 +31,7 @@ Requires:       mozilla-nss-tools
 Requires:       openssl
 # suse-module-tools <= 15.0.10 contains modsign-verify
 Requires:       suse-module-tools >= 15.0.10
-%ifarch %{ix86} x86_64 ia64 aarch64 %{arm}
+%ifarch %{ix86} x86_64 ia64 aarch64 %{arm} riscv64
 Requires:       pesign
 %endif
 

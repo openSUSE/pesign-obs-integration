@@ -130,7 +130,7 @@ for sig in "${sigs[@]}"; do
 		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
 		;;
 	/boot/* | *.efi.sig | */lib/modules/*/vmlinu[xz].sig | */lib/modules/*/[Ii]mage.sig | */lib/modules/*/z[Ii]mage.sig)
-%ifarch %ix86 x86_64 aarch64 %arm
+%ifarch %ix86 x86_64 aarch64 %arm riscv64
 		# PE style signature injection
 		infile=${sig%.sig}
 		cpio -i --to-stdout ${infile#./} <%_sourcedir/@NAME@.cpio.rsasign > ${infile}.sattrs
