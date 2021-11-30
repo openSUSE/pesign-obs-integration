@@ -126,7 +126,7 @@ sigs=($(find -type f -name '*.sig' -printf '%%P\n'))
 for sig in "${sigs[@]}"; do
 	f=%buildroot/${sig%.sig}
 	case "/$sig" in
-	*.ko.sig)
+	*.ko.sig|*.mod.sig)
 		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
 		;;
 	/boot/* | *.efi.sig | */lib/modules/*/vmlinu[xz].sig | */lib/modules/*/[Ii]mage.sig | */lib/modules/*/z[Ii]mage.sig)
@@ -156,6 +156,26 @@ for sig in "${sigs[@]}"; do
 		;;
 	*stage3.bin.sig)
 		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
+		;;
+	*grub.elf.sig)
+		sig_size="$(wc -c < "$sig")"
+		unsigned_grub_size="$(wc -c < "$f")"
+		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f" "$f".appendtest
+		signed_grub_size="$(wc -c < "$f".appendtest)"
+		rm "$f".appendtest
+		footer_size="$(expr "$signed_grub_size" - "$unsigned_grub_size" - "$sig_size")"
+		if ! [ $(expr "$sig_size" + "$footer_size") -le "@PESIGN_GRUB_RESERVATION@" ] ; then
+			echo "size of '$sig' ($sig_size) cannot fit into reservation @PESIGN_GRUB_RESERVATION@ (-$footer_size)"
+			exit 1
+		fi
+		sig_size="$(expr "@PESIGN_GRUB_RESERVATION@" - "$footer_size")"
+		truncate -s $sig_size "$sig"
+		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
+		grub_size="$(wc -c < "$f")"
+		if ! [ "$(expr "$unsigned_grub_size" + "@PESIGN_GRUB_RESERVATION@")" -eq "$grub_size" ] ; then
+			echo "The size of unsigned grub ($unsigned_grub_size) + reservation (@PESIGN_GRUB_RESERVATION@) does not add up to signed grub size ($grub_size)"
+			exit 1
+		fi
 		;;
 	*)
 		echo "Warning: unhandled signature: $sig" >&2

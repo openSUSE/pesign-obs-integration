@@ -58,6 +58,19 @@ if ! mkdir -p "$output"; then
 	exit 0
 fi
 
+case "$BRP_PESIGN_GRUB_RESERVATION" in
+	'')
+		pesign_grub_reservation="0"
+		;;
+	*[!0-9]*)
+		echo "$0: warning: non-numerc value '$BRP_PESIGN_GRUB_RESERVATION' of BRP_PESIGN_GRUB_RESERVATION" >&2
+		pesign_grub_reservation="0"
+		;;
+	*)
+	pesign_grub_reservation="${BRP_PESIGN_GRUB_RESERVATION}"
+	;;
+esac
+
 if test "${BRP_PESIGN_COMPRESS_MODULE}" = "xz"; then
 	pesign_repackage_compress="--compress xz"
 elif test "${BRP_PESIGN_COMPRESS_MODULE}" = "gzip"; then
@@ -77,6 +90,7 @@ else
 fi
 sed "
 	s:@NAME@:$RPM_PACKAGE_NAME:g
+	s:@PESIGN_GRUB_RESERVATION@:$pesign_grub_reservation:g
 	s:@PESIGN_REPACKAGE_COMPRESS@:$pesign_repackage_compress:g
 	/@CERT@/ {
 		r $cert
