@@ -162,7 +162,7 @@ for sig in "${sigs[@]}"; do
 		unsigned_grub_size="$(wc -c < "$f")"
 		/usr/lib/rpm/pesign/kernel-sign-file -vpd -i pkcs7 -s "$sig" sha256 "$cert" "$f"
 		sig_size="$(wc -c < "$f.p7s")"
-		footer_size=40
+		footer_size=40 # 12 bytes signature info structure, 28 bytes signature magic string
 		grub_size="$(wc -c < "$f")"
 		if ! [ $(expr "$sig_size" + "$footer_size") -le "@PESIGN_GRUB_RESERVATION@" ] ; then
 			echo "size of '$f.p7s' ($sig_size) cannot fit into reservation @PESIGN_GRUB_RESERVATION@ (-$footer_size)"
