@@ -402,7 +402,7 @@ sub print_files {
 		$compress_cmd = "xz --lzma2=dict=2MiB -f";
 	} elsif ($compress eq "gzip") {
 		$compress_ext = ".gz";
-		$compress_cmd = "gzip -n -f";
+		$compress_cmd = "gzip -f";
 	} elsif ($compress eq "zstd") {
 		$compress_ext = ".zst";
 		$compress_cmd = "zstd -T0 --rm -f -q";
