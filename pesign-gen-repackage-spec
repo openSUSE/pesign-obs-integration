@@ -130,6 +130,7 @@ my %dep2tag = (
 	enhances => "enhance",
 	recommends => "recommend",
 	supplements => "supplement",
+	orderwithrequires => "order",
 );
 
 # specfile scriptlet => rpm tag name
