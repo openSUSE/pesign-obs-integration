@@ -67,7 +67,7 @@ for rpm in %_sourcedir/*.rpm; do
 	# bitness => skip)
 	case "$(rpm -qp --qf '%%{name}/%%{arch}' "$rpm")" in
 	*-32bit/x86_64 | *-32bit/s390x | *-32bit/ppc64 | \
-	*-64bit/ppc | *-x86/ia64)
+	*-64bit/aarch64_ilp32 | *-64bit/ppc | *-x86/ia64)
 		mkdir -p "%_topdir/OTHER"
 		cp "$rpm" "$_"
 		continue
