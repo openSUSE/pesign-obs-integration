@@ -186,8 +186,9 @@ popd
 /usr/lib/rpm/pesign/pesign-gen-repackage-spec @PESIGN_REPACKAGE_COMPRESS@ \
 	--directory=%buildroot "${rpms[@]}"
 rpmbuild --define "%%buildroot %buildroot" --define "%%disturl $disturl" \
-	 --define "%%_builddir $PWD" \
-	 --define "%_suse_insert_debug_package %%{nil}" -bb repackage.spec
+	--define "%%_builddir $PWD" \
+	--define "%%_binaries_in_noarch_packages_terminate_build 0" \
+	--define "%_suse_insert_debug_package %%{nil}" -bb repackage.spec
 
 # This is needed by the kernel packages. Ideally, we should not run _any_ brp
 # checks, because the RPMs passed them once already
