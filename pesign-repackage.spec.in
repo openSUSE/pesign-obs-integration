@@ -91,6 +91,8 @@ OTHER_FILES=`find %_sourcedir/ -maxdepth 1 -type f \
 	-not -name "_statistics" \
 	-not -name "logfile" \
 	-not -name "meta" \
+	-not -name "pesign-spec-macros" \
+	-not -name "source_files.cpio" \
 	-print`
 for file in $OTHER_FILES; do
 	if test -e "$file"; then
@@ -98,6 +100,11 @@ for file in $OTHER_FILES; do
 		cp "$file" "$_"
 	fi
 done
+if test -e %_sourcedir/source_files.cpio; then
+	pushd %_sourcedir
+	cpio -i < source_files.cpio
+	popd
+fi
 mkdir rsasigned
 pushd rsasigned
 cpio -idm <%_sourcedir/@NAME@.cpio.rsasign.sig
@@ -183,7 +190,7 @@ for sig in "${sigs[@]}"; do
 	esac
 done
 popd
-/usr/lib/rpm/pesign/pesign-gen-repackage-spec @PESIGN_REPACKAGE_COMPRESS@ \
+/usr/lib/rpm/pesign/pesign-gen-repackage-spec @PESIGN_REPACKAGE_COMPRESS@ @PESIGN_LOAD_SPEC_MACROS@ \
 	--directory=%buildroot "${rpms[@]}"
 rpmbuild --define "%%buildroot %buildroot" --define "%%disturl $disturl" \
 	--define "%%_builddir $PWD" \

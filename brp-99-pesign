@@ -88,10 +88,34 @@ else
 	echo "No buildservice signing certificate"
 	cert=/dev/null
 fi
+
+if test -e $RPM_SOURCE_DIR/pesign-spec-macros; then
+	sed "
+		s:%{name}:$RPM_PACKAGE_NAME:g
+		s:%{version}:$RPM_PACKAGE_VERSION:g
+	" $RPM_SOURCE_DIR/pesign-spec-macros > $output/pesign-spec-macros
+	spec_macros="--macros pesign-spec-macros"
+fi
+if test -e $RPM_SOURCE_DIR/pesign-copy-sources; then
+	sed "
+		s:%{name}:$RPM_PACKAGE_NAME:g
+		s:%{version}:$RPM_PACKAGE_VERSION:g
+	" $RPM_SOURCE_DIR/pesign-copy-sources > $output/pesign-copy-sources
+	while read -r line; do
+		if [ -n "${line}" ]; then
+			source_files="${source_files}${RPM_SOURCE_DIR}/${line}\n"
+		fi
+	done < $output/pesign-copy-sources
+	echo -e "$source_files" | head -c -1 | cpio -o > $output/source_files.cpio
+	rm $output/pesign-copy-sources
+fi
+
+
 sed "
 	s:@NAME@:$RPM_PACKAGE_NAME:g
 	s:@PESIGN_GRUB_RESERVATION@:$pesign_grub_reservation:g
 	s:@PESIGN_REPACKAGE_COMPRESS@:$pesign_repackage_compress:g
+	s:@PESIGN_LOAD_SPEC_MACROS@:$spec_macros:g
 	/@CERT@/ {
 		r $cert
 		d
