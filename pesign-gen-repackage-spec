@@ -416,8 +416,6 @@ sub print_files {
 			$attrs .= "\%dir ";
 			utime($f->{mtime}, $f->{mtime}, $path);
 		}
-		$attrs .= sprintf('%%attr(%04o, %s, %s) ', ($f->{mode} & 0777),
-			$f->{owner}, $f->{group});
 		if ($f->{flags} & $filetypes{config}) {
 			$attrs .= "%config ";
 			my @cfg_attrs;
@@ -447,6 +445,10 @@ sub print_files {
 				make_path(dirname($path));
 				symlink($f->{target}, $path);
 			}
+		}
+		unless (S_ISLNK($f->{mode})) {
+			$attrs .= sprintf('%%attr(%04o, %s, %s) ', ($f->{mode} & 07777),
+				$f->{owner}, $f->{group});
 		}
 		# mtime of symlinks is also not preserved by cpio
 		if (S_ISLNK($f->{mode})) {
