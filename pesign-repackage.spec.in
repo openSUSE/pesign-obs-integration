@@ -122,8 +122,17 @@ echo foofoofoo > "$nss_db/passwd"
 certutil -N -d "$nss_db" -f "$nss_db/passwd"
 certutil -A -d "$nss_db" -f "$nss_db/passwd" -n cert -t CT,CT,CT -i "$cert"
 
+# Extract the public key of the certificate
+openssl x509 -in "$cert" -inform DER -pubkey -noout > "$cert.pub"
+
 sigs=($(find -type f -name '*.sig' -printf '%%P\n'))
 for sig in "${sigs[@]}"; do
+	# Verify the signature with the public key of the certificate
+	ver_err=$(openssl rsautl -verify -inkey "$cert.pub" -pubin -in "$sig" 2>&1 | grep -i error) || true
+	if [ -n "$ver_err" ]; then
+		echo "$sig signature can not be decrypted by $cert" >&2
+		exit 1
+	fi
 	f=%buildroot/${sig%.sig}
 	case "/$sig" in
 	*.ko.sig|*.mod.sig)
@@ -182,6 +191,10 @@ for sig in "${sigs[@]}"; do
 		echo "Warning: unhandled signature: $sig" >&2
 	esac
 done
+
+# Remove the public key file
+rm "$cert.pub"
+
 popd
 /usr/lib/rpm/pesign/pesign-gen-repackage-spec @PESIGN_REPACKAGE_COMPRESS@ \
 	--directory=%buildroot "${rpms[@]}"
