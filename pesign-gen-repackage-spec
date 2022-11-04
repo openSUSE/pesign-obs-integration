@@ -556,7 +556,8 @@ if ($cert_subpackage) {
 				print STDERR "warning: Ignoring $directory/$certdir/$cert (no .crt suffix)\n";
 				next;
 			}
-			$certs .= " $certdir/$cert";
+			$cert =~ s{\.[^.]+$}{};
+			$certs .= " $cert";
 		}
 	}
 	if (!$certs) {
