@@ -33,6 +33,7 @@ my $output = ".";
 my $cert_subpackage;
 my $kmp_basename;
 my $compress = "";
+my $macros_file = "";
 my @rpms;
 
 $ENV{LC_ALL} = "en_US.UTF-8";
@@ -43,6 +44,7 @@ GetOptions(
 	"output|o=s" => \$output,
 	"cert-subpackage|c=s" => \$cert_subpackage,
 	"compress|C=s" => \$compress,
+	"macros|M=s" => \$macros_file,
 ) or die $USAGE;
 @rpms = @ARGV;
 if (!@rpms) {
@@ -270,6 +272,7 @@ sub print_package {
 	print SPEC "\%define _binary_payload $payloadstr\n";
 
 	if ($is_main) {
+		print SPEC "\%{load:\%_sourcedir/$macros_file}\n" if $macros_file ne "";
 		print SPEC "Name: $p->{name}\n";
 		print SPEC "Buildroot: $directory\n";
 		if ($p->{nosource}) {
