@@ -153,6 +153,12 @@ my %com2pl = (
 	zstd  => "zstdio",
 );
 
+my %sense2tag = (
+	0x10000 => 'triggerin',
+	0x20000 => 'triggerun',
+	0x40000 => 'triggerpostun',
+);
+
 # tags which are printed verbatim in the specfile
 my @simple_tags = qw(epoch version release license group summary packager vendor
                      url distribution);
@@ -222,6 +228,58 @@ sub load_package {
 				interp => $triggers[$i]->[1],
 				conds =>  $triggers[$i]->[2],
 				script => $triggerscripts[$i],
+		});
+	}
+
+	my @filetriggerprogs = query_array($rpm, qw(filetriggerscriptprog filetriggerscriptflags filetriggerpriorities));
+	my @filetriggerscripts = query_multiline_array($rpm, "filetriggerscripts");
+	my @filetriggers = query_array($rpm, qw(filetriggerindex filetriggername filetriggerversion filetriggerflags));
+	if (scalar(@filetriggerprogs) != scalar(@filetriggerscripts)) {
+		die "# of %%{filetriggerscriptprog} tags (" . scalar(@filetriggerprogs) .
+		") != # of %%{filetriggerscripts} tags (" . scalar(@filetriggerscripts)
+		. ")";
+	}
+	my @filetriggeridx;
+	for (my $i = 0; $i < scalar(@filetriggers); $i++) {
+		push @{$filetriggeridx[$filetriggers[$i]->[0]]}, $i;
+	}
+	for (my $i = 0; $i < scalar(@filetriggerprogs); $i++) {
+		my @idx = @{$filetriggeridx[$i] || []};
+		$res{filetriggers} ||= [];
+		push(@{$res{filetriggers}}, {
+				name =>   [ map {$filetriggers[$_]->[1]} @idx ],
+				interp => $filetriggerprogs[$i]->[0],
+				scriptflags => $filetriggerprogs[$i]->[1],
+				version =>  [ map {$filetriggers[$_]->[2]} @idx ],
+				sense =>  [ map {$filetriggers[$_]->[3]} @idx ],
+				priority =>  $filetriggerprogs[$i]->[2],
+				script => $filetriggerscripts[$i],
+		});
+	}
+
+	my @transfiletriggerprogs = query_array($rpm, qw(transfiletriggerscriptprog transfiletriggerscriptflags transfiletriggerpriorities));
+	my @transfiletriggerscripts = query_multiline_array($rpm, "transfiletriggerscripts");
+	my @transfiletriggers = query_array($rpm, qw(transfiletriggerindex transfiletriggername transfiletriggerversion transfiletriggerflags));
+	if (scalar(@transfiletriggerprogs) != scalar(@transfiletriggerscripts)) {
+		die "# of %%{transfiletriggerscriptprog} tags (" . scalar(@transfiletriggerprogs) .
+		") != # of %%{transfiletriggerscripts} tags (" . scalar(@transfiletriggerscripts)
+		. ")";
+	}
+	my @transfiletriggeridx;
+	for (my $i = 0; $i < scalar(@transfiletriggers); $i++) {
+		push @{$transfiletriggeridx[$transfiletriggers[$i]->[0]]}, $i;
+	}
+	for (my $i = 0; $i < scalar(@transfiletriggerprogs); $i++) {
+		my @idx = @{$transfiletriggeridx[$i] || []};
+		$res{transfiletriggers} ||= [];
+		push(@{$res{transfiletriggers}}, {
+				name =>   [ map {$transfiletriggers[$_]->[1]} @idx ],
+				interp => $transfiletriggerprogs[$i]->[0],
+				scriptflags => $transfiletriggerprogs[$i]->[1],
+				version =>  [ map {$transfiletriggers[$_]->[2]} @idx ],
+				sense =>  [ map {$transfiletriggers[$_]->[3]} @idx ],
+				priority =>  $transfiletriggerprogs[$i]->[2],
+				script => $transfiletriggerscripts[$i],
 		});
 	}
 	open(my $fh, '-|', "rpm", "-qp", "--changelog", $rpm) or die "rpm: $!\n";
@@ -307,6 +365,26 @@ sub print_package {
 		print SPEC "\%trigger$trigger->{type} -p $trigger->{interp} -n $p->{name}";
 		print_script("trigger$i-$p->{name}", $trigger);
 		print SPEC " -- $trigger->{conds}\n";
+		$i++;
+	}
+	for my $trigger (@{$p->{filetriggers}}) {
+		my $sense = $trigger->{'sense'}->[0];
+		die("unsupported sense $sense\n") unless $sense2tag{$sense};
+		print SPEC "\%file$sense2tag{$sense}";
+		print SPEC " -P $trigger->{'priority'}" if $trigger->{'priority'} && $trigger->{'priority'} ne '(none)';
+		print SPEC " -p $trigger->{interp} -n $p->{name}";
+		print_script("trigger$i-$p->{name}", $trigger);
+		print SPEC " -- ".join(' ', @{$trigger->{'name'}})."\n";
+		$i++;
+	}
+	for my $trigger (@{$p->{transfiletriggers}}) {
+		my $sense = $trigger->{'sense'}->[0];
+		die("unsupported sense $sense\n") unless $sense2tag{$sense};
+		print SPEC "\%transfile$sense2tag{$sense}";
+		print SPEC " -P $trigger->{'priority'}" if $trigger->{'priority'} && $trigger->{'priority'} ne '(none)';
+		print SPEC " -p $trigger->{interp} -n $p->{name}";
+		print_script("trigger$i-$p->{name}", $trigger);
+		print SPEC " -- ".join(' ', @{$trigger->{'name'}})."\n";
 		$i++;
 	}
 	if ($p->{files}) {
