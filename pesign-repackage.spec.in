@@ -31,10 +31,11 @@ BuildRequires:  pesign
 %endif
 License:        GPL-2.0
 Group:          Development/Tools/Other
-Summary:        Spec file to rebuild RPMs with signatures
+Summary:        Rebuild RPMs with signatures
+URL:            https://github.com/opensuse/pesign-obs-integration
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
-Rebuilds RPMs with signatures
+Spec file to rebuild RPMs with signatures
 
 %prep
 %setup -c -T
@@ -84,7 +85,7 @@ for rpm in %_sourcedir/*.rpm; do
 	rpms=("${rpms[@]}" "$rpm")
 done
 popd
-# Copy files other than the meta files and RPMs to %_topdir/OTHER
+# Copy files other than the meta files and RPMs to %%_topdir/OTHER
 OTHER_FILES=`find %_sourcedir/ -maxdepth 1 -type f \
 	-not -regex '.*\.\(rpm\|spec\|rsasign\|sig\|crt\)' \
 	-not -regex '.*\rpmlintrc' \
