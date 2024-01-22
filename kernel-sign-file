@@ -13,7 +13,7 @@ use IPC::Open2;
 use Getopt::Std;
 
 my %opts;
-getopts('vkpds:i:C:', \%opts) or die $USAGE;
+getopts('vkpdNs:i:C:', \%opts) or die $USAGE;
 my $verbose = $opts{'v'};
 my $signature_file = $opts{'s'};
 my $use_keyid = $opts{'k'};
@@ -22,6 +22,7 @@ my $save_sig = $opts{'p'};
 $save_sig = 1 if $sign_only;
 my $id_type_name = $opts{'i'};
 my $certs_file = $opts{'C'};		# certs to include in pkcs7 signature (DER encoded)
+my $digest_algo_with_null = $opts{'N'};	# add NULL param to algo, like openssl does (see RFC 4055)
 
 die $USAGE if ($#ARGV > 4);
 die $USAGE if (!$signature_file && $#ARGV < 3 || $signature_file && $#ARGV < 2);
@@ -465,7 +466,7 @@ if ($id_type == 1) {
 	%certdata = parse_certificate($x509_certificate);
 	$signature = asn1_pack($UNIV | $OCTET_STRING, $signature);
 	my $digest_algo = substr($prologue, 4, 2 + unpack('C', substr($prologue, 5, 1)));
-	my $digest_algo_seq = asn1_pack($UNIV | $CONS | $SEQUENCE, $digest_algo);
+	my $digest_algo_seq = asn1_pack($UNIV | $CONS | $SEQUENCE, $digest_algo, ($digest_algo_with_null ? asn1_pack($UNIV | $NULL) : ''));
 	my $digest_algo_seq_set = asn1_pack($UNIV | $CONS | $SET, $digest_algo_seq);
 	my $si_verstion = asn1_pack($UNIV | $INTEGER,  pack('C', $use_keyid ? 3 : 1));
 	my $si_issuer = asn1_pack($certdata{issuer}->[0], asn1_retrieve($certdata{issuer}->[1]));
