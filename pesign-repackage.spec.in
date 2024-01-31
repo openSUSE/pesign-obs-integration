@@ -146,6 +146,16 @@ for sig in "${sigs[@]}"; do
 	*.ko.sig|*.mod.sig)
 		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
 		;;
+	*.auth.sig)
+		/usr/lib/rpm/pesign/kernel-sign-file -N -P -d -C "$cert" -i pkcs7 -s "$sig" sha256 "$cert" "$f"
+		fbase="${f##*/}"
+		fbase="${fbase%.auth}"
+		fbase="${fbase%%-*}"
+		perl -0777 -npe 's/\A(?:[\040-\176]\0)+.{18}\0\0.{14}\0\0//s' < "$f" > "$f.orig"
+		sign-efi-sig-list -i "$f.p7sd" "$fbase" "$f.orig" "$f.tmp"
+		mv "$f.tmp" "$f"
+		rm -f "$f.p7s" "$f.p7sd" "$f.orig"
+		;;
 	/boot/* | *.efi.sig | */lib/modules/*/vmlinu[xz].sig | */lib/modules/*/[Ii]mage.sig | */lib/modules/*/z[Ii]mage.sig)
 %ifarch %ix86 x86_64 aarch64 %arm riscv64
 		# PE style signature injection
