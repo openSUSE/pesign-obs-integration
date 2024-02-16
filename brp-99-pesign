@@ -122,6 +122,15 @@ sed "
 	}
 " /usr/lib/rpm/pesign/pesign-repackage.spec.in >"$output/pesign-repackage.spec"
 
+date="$(LANG=C date --utc --date "@${SOURCE_DATE_EPOCH:-$(date +%s)}" '+%a %b %d %H:%M:%S %Z %Y')"
+cat <<EOF >"$output/pesign-repackage.changes"
+-------------------------------------------------------------------
+$date - openSUSE <packaging@lists.opensuse.org>
+
+- automatically generated
+
+EOF
+
 for rpmlintrc in $RPM_SOURCE_DIR/*rpmlintrc; do
 	if test -e "$rpmlintrc"; then
 		cp "$rpmlintrc" "$output/"
