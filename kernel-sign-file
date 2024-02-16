@@ -13,7 +13,7 @@ use IPC::Open2;
 use Getopt::Std;
 
 my %opts;
-getopts('vkpds:i:', \%opts) or die $USAGE;
+getopts('vkpdNPs:i:C:', \%opts) or die $USAGE;
 my $verbose = $opts{'v'};
 my $signature_file = $opts{'s'};
 my $use_keyid = $opts{'k'};
@@ -21,6 +21,9 @@ my $sign_only = $opts{'d'};
 my $save_sig = $opts{'p'};
 $save_sig = 1 if $sign_only;
 my $id_type_name = $opts{'i'};
+my $certs_file = $opts{'C'};		# certs to include in pkcs7 signature (DER encoded)
+my $digest_algo_with_null = $opts{'N'};	# add NULL param to algo, like openssl does (see RFC 4055)
+my $save_signed_data = $opts{'P'};	# dump pkcs7 signed data in .p7sd
 
 die $USAGE if ($#ARGV > 4);
 die $USAGE if (!$signature_file && $#ARGV < 3 || $signature_file && $#ARGV < 2);
@@ -43,6 +46,7 @@ if (@ARGV) {
 die "Can't read private key\n" if (!$signature_file && !-r $private_key);
 die "Can't read signature file\n" if ($signature_file && !-r $signature_file);
 die "Can't read module\n" unless (-r $module);
+die "Can't read X.509 certs file\n" if ($certs_file && !-r $certs_file);
 
 #
 # Function to read the contents of a file into a variable.
@@ -455,10 +459,15 @@ if ($id_type == 1) {
 	$x509_certificate = '';
     }
     if ($x509_certificate) {
+	my $certs = '';
+	if ($certs_file) {
+	    $certs = read_file($certs_file);
+	    $certs = asn1_pack($CONT | $CONS | 0, $certs);
+	}
 	%certdata = parse_certificate($x509_certificate);
 	$signature = asn1_pack($UNIV | $OCTET_STRING, $signature);
 	my $digest_algo = substr($prologue, 4, 2 + unpack('C', substr($prologue, 5, 1)));
-	my $digest_algo_seq = asn1_pack($UNIV | $CONS | $SEQUENCE, $digest_algo);
+	my $digest_algo_seq = asn1_pack($UNIV | $CONS | $SEQUENCE, $digest_algo, ($digest_algo_with_null ? asn1_pack($UNIV | $NULL) : ''));
 	my $digest_algo_seq_set = asn1_pack($UNIV | $CONS | $SET, $digest_algo_seq);
 	my $si_verstion = asn1_pack($UNIV | $INTEGER,  pack('C', $use_keyid ? 3 : 1));
 	my $si_issuer = asn1_pack($certdata{issuer}->[0], asn1_retrieve($certdata{issuer}->[1]));
@@ -473,9 +482,14 @@ if ($id_type == 1) {
 	my $sid_version = asn1_pack($UNIV | $INTEGER, pack('C', $use_keyid ? 3 : 1));
 	my $pkcs7_data = asn1_pack($UNIV | $OBJ_ID, pack("CCCCCCCCC", 42, 134, 72, 134, 247, 13, 1, 7, 1));
 	my $pkcs7_data_seq = asn1_pack($UNIV | $CONS | $SEQUENCE, $pkcs7_data);
-	my $sid = asn1_pack($UNIV | $CONS | $SEQUENCE, $sid_version, $digest_algo_seq_set, $pkcs7_data_seq, $si_set);
+	my $sid = asn1_pack($UNIV | $CONS | $SEQUENCE, $sid_version, $digest_algo_seq_set, $pkcs7_data_seq, $certs, $si_set);
 	my $pkcs7_signed_data = asn1_pack($UNIV | $OBJ_ID, pack("CCCCCCCCC", 42, 134, 72, 134, 247, 13, 1, 7, 2));
 	$signature = asn1_pack($UNIV | $CONS | $SEQUENCE, $pkcs7_signed_data, asn1_pack($CONT | $CONS | 0, $sid));
+	if ($save_signed_data) {
+	    open(FD, ">$module.p7sd") || die "$module.p7sd";
+	    binmode FD;
+	    print FD $sid; 
+	}
     } else {
 	print "Certificate is empty, assuming pre-built PKCS#7 signature.\n" if ($verbose);
     }
