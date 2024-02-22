@@ -230,3 +230,4 @@ export NO_BRP_STALE_LINK_ERROR=yes
 rm -rf %buildroot
 mkdir %buildroot
 
+%changelog
