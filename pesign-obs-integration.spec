@@ -21,7 +21,7 @@ Name:           pesign-obs-integration
 Version:        10.2
 Release:        0
 Summary:        Macros and scripts to sign the kernel and bootloader
-License:        GPL-2.0-only
+License:        GPL-2.0-or-later
 Group:          Development/Tools/Other
 URL:            https://en.opensuse.org/openSUSE:UEFI_Image_File_Sign_Tools
 Source0:        %{name}-%{version}.tar.gz
