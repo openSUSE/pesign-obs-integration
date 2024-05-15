@@ -164,7 +164,7 @@ my %sense2tag = (
 
 # tags which are printed verbatim in the specfile
 my @simple_tags = qw(epoch version release license group summary packager vendor
-                     url distribution);
+                     url vcs distribution);
 my @payload_tags = qw(payloadcompressor payloadflags);
 
 sub load_package {
