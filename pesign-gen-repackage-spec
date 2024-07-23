@@ -311,7 +311,7 @@ sub print_script {
 	return unless $script->{script};
 	open(my $fh, '>', "$output/$file")
 		or die "$output/$file: $!\n";
-	print $fh $script->{script};
+	print $fh quote($script->{script});
 	close($fh);
 	print SPEC " -f $file";
 }
