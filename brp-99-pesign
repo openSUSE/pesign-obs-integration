@@ -158,7 +158,8 @@ mkdir -p "$archive_dir"
 # create an empty nss database to make pesign happy
 nss_db=$(mktemp -d)
 trap 'rm -rf "$nss_db"' EXIT
-echo foofoofoo > "$nss_db/passwd"
+# strong password (in FIPS mode it is checked for strength)
+echo Eir4;Qua.daeJ,hP0 > "$nss_db/passwd"
 certutil -N -d "$nss_db" -f "$nss_db/passwd"
 
 echo "Creating $archive"
