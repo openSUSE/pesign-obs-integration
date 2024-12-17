@@ -658,6 +658,16 @@ if ($cert_subpackage) {
 	$template =~ s/\@CERTS\@/$certs/g;
 	print SPEC $template;
 }
+
+print SPEC <<"EOF";
+%if "%buildroot" != "$directory"
+%install
+rmdir %buildroot
+ln -sf $directory %buildroot
+%endif
+
+EOF
+
 print SPEC "\%changelog\n";
 print SPEC quote($packages{$main_name}->{changelog});
 close(SPEC);
