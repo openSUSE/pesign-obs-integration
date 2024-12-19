@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec 17 11:11:32 CET 2024 - mls@suse.de
+
+- Add workaround to make the repackage work with rpm-4.20
+
+-------------------------------------------------------------------
 Mon Dec 21 03:50:35 UTC 2020 - Gary Ching-Pang Lin <glin@suse.com>
 
 - Update to version 10.2:
