@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Dec 20 11:10:01 CET 2024 - mls@suse.de
+
+- Fix repackaging of scriptlets with rpm-4.20
+
+-------------------------------------------------------------------
 Tue Dec 17 11:11:32 CET 2024 - mls@suse.de
 
 - Add workaround to make the repackage work with rpm-4.20
