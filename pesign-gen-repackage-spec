@@ -664,6 +664,7 @@ print SPEC <<"EOF";
 %install
 rmdir %buildroot
 ln -sf $directory %buildroot
+%{?_top_builddir:%global buildsubdir ..}
 %endif
 
 EOF
