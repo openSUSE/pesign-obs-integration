@@ -66,7 +66,7 @@ fi
 
 %files
 %license COPYING
-%doc README
+%doc README.md
 %{_bindir}/modsign-repackage
 %{_bindir}/modsign-verify
 %{_prefix}/lib/rpm/*
