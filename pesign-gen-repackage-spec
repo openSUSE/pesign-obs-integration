@@ -661,7 +661,7 @@ if ($cert_subpackage) {
 
 print SPEC <<"EOF";
 %if "%buildroot" != "$directory"
-%install
+%build
 rmdir %buildroot
 ln -sf $directory %buildroot
 %{?_top_builddir:%global buildsubdir ..}
