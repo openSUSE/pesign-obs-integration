@@ -289,11 +289,11 @@ then
 		mkdir -p "../tmp/$(dirname "${DEST}")"
 
 		# ensure the EFI hash matches before and after attaching the signature
-		old_hash=$(pesign -n sql:"$nss_db" -h -P -i "${SIG%.sig}")
+		old_hash=$(pesign -n sql:"$nss_db" -h -P -i "${SIG%.sig}" | cut -d ' ' -f1)
 
 		pesign -n sql:"$nss_db" -c cert -i "${SIG%.sig}" -o "$DEST" -d sha256 -I "$(basename "${infile}").sattrs" -R "$SIG"
 
-		new_hash=$(pesign -n sql:"$nss_db" -h -i "$DEST")
+		new_hash=$(pesign -n sql:"$nss_db" -h -i "$DEST" | cut -d ' ' -f1)
 		if [ "$old_hash" != "$new_hash" ]
 		then
 		    echo "Pesign hash mismatch error: $old_hash $new_hash"
