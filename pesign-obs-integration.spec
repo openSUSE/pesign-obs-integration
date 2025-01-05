@@ -17,6 +17,10 @@
 # needssslcertforbuild
 
 
+%if 0%{?fedora}
+%global debug_package %{nil}
+%endif
+
 Name:           pesign-obs-integration
 Version:        10.2
 Release:        0
