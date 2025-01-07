@@ -217,8 +217,7 @@ rm "$cert.pub"
 popd
 /usr/lib/rpm/pesign/pesign-gen-repackage-spec @PESIGN_REPACKAGE_COMPRESS@ @PESIGN_LOAD_SPEC_MACROS@ \
 	--directory=%buildroot "${rpms[@]}"
-rpmbuild --define "%%buildroot %buildroot" --define "%%disturl $disturl" \
-	--define "%%_builddir $PWD" \
+rpmbuild --build-in-place --define "%%buildroot %buildroot" --define "%%disturl $disturl" \
 	--define "%%_binaries_in_noarch_packages_terminate_build 0" \
 	--define "%_suse_insert_debug_package %%{nil}" -bb repackage.spec
 
