@@ -26,11 +26,19 @@ files="*.ko"
 if test -n "${BRP_PESIGN_FILES+x}"; then
 	files=${BRP_PESIGN_FILES}
 fi
+packages=
+if test -n "${BRP_PESIGN_PACKAGES+x}"; then
+	packages=${BRP_PESIGN_PACKAGES}
+fi
 output=
 while test $# -gt 0; do
 	case "$1" in
 	--files)
 		files=$2
+		shift 2
+		;;
+	--packages)
+		packages=$2
 		shift 2
 		;;
 	--output)
@@ -116,6 +124,7 @@ sed "
 	s:@PESIGN_GRUB_RESERVATION@:$pesign_grub_reservation:g
 	s:@PESIGN_REPACKAGE_COMPRESS@:$pesign_repackage_compress:g
 	s:@PESIGN_LOAD_SPEC_MACROS@:$spec_macros:g
+	s:@PESIGN_PACKAGES@:$packages:g
 	/@CERT@/ {
 		r $cert
 		d

@@ -9,6 +9,9 @@ export BRP_PESIGN_FILES='pattern...'
 BuildRequires: pesign-obs-integration
 ```
 
+BRP_PESIGN_PACKAGES can optionally be defined to restrict repacking to a subset
+of packages of choice.
+
 Debian packages need to add the following line to the Source stanza in the
 debian/control file, which will add "Obs: needssslcertforbuild" to the generated
 .dsc file:
