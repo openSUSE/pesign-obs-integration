@@ -26,12 +26,13 @@ set -e
 # called "source-template" in the debian/ directory (can be a subdirectory, and it can be
 # static or generated). Also a files.json list of the binaries to sign must be placed in the
 # same PARENT directory with the following format:
+# {"packages": {
 #  {"unsigned-binary-package": {
 #	"files": [
 #		{"sig_type": "efi", "file": "usr/lib/foo/bar.efi"},
 #		{"sig_type": "linux-module", "file": "lib/modules/1.2.3/baz.ko"}
 #	]
-#  }}
+# }}}
 # The advantage of the templated build is that it can sign only a subset of files - for
 # example, a kernel build with CONFIG_MODULE_SIG_ALL=y does not need to sign the modules and
 # can save a lot of time by just signing the vmlinuz.
@@ -157,9 +158,9 @@ EOF
 	JSON="$(find debian -type f -name files.json)"
 	if [ -f "$JSON" ]
 	then
-		for PKG in $(jq --raw-output 'to_entries[]? | .key' < "$JSON")
+		for PKG in $(jq --raw-output '.packages | to_entries[]? | .key' < "$JSON")
 		do
-			for f in $(jq --raw-output ".\"$PKG\".files[]? | .file" < "$JSON")
+			for f in $(jq --raw-output ".packages.\"$PKG\".files[]? | .file" < "$JSON")
 			do
 				UNSIGNED+=("$PKG/$f")
 			done
@@ -289,11 +290,11 @@ then
 		mkdir -p "../tmp/$(dirname "${DEST}")"
 
 		# ensure the EFI hash matches before and after attaching the signature
-		old_hash=$(pesign -n sql:"$nss_db" -h -P -i "${SIG%.sig}")
+		old_hash=$(pesign -n sql:"$nss_db" -h -P -i "${SIG%.sig}" | cut -d ' ' -f1)
 
 		pesign -n sql:"$nss_db" -c cert -i "${SIG%.sig}" -o "$DEST" -d sha256 -I "$(basename "${infile}").sattrs" -R "$SIG"
 
-		new_hash=$(pesign -n sql:"$nss_db" -h -i "$DEST")
+		new_hash=$(pesign -n sql:"$nss_db" -h -i "$DEST" | cut -d ' ' -f1)
 		if [ "$old_hash" != "$new_hash" ]
 		then
 		    echo "Pesign hash mismatch error: $old_hash $new_hash"

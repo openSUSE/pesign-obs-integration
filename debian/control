@@ -17,6 +17,7 @@ Architecture: all
 Enhances: debhelper
 Depends: ${misc:Depends}, debhelper, cpio, libnss3-tools, jq, pesign,
  pesign-obs-integration, openssl
+Provides: dh-sequence-signobs,
 Description: Debian Helper for EFI signing on OBS
  Adds a helper sequence to dh to send EFI signatures to OBS and to
  re-package them using the templates.
