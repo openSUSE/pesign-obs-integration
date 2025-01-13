@@ -26,12 +26,13 @@ set -e
 # called "source-template" in the debian/ directory (can be a subdirectory, and it can be
 # static or generated). Also a files.json list of the binaries to sign must be placed in the
 # same PARENT directory with the following format:
+# {"packages": {
 #  {"unsigned-binary-package": {
 #	"files": [
 #		{"sig_type": "efi", "file": "usr/lib/foo/bar.efi"},
 #		{"sig_type": "linux-module", "file": "lib/modules/1.2.3/baz.ko"}
 #	]
-#  }}
+# }}}
 # The advantage of the templated build is that it can sign only a subset of files - for
 # example, a kernel build with CONFIG_MODULE_SIG_ALL=y does not need to sign the modules and
 # can save a lot of time by just signing the vmlinuz.
@@ -157,9 +158,9 @@ EOF
 	JSON="$(find debian -type f -name files.json)"
 	if [ -f "$JSON" ]
 	then
-		for PKG in $(jq --raw-output 'to_entries[]? | .key' < "$JSON")
+		for PKG in $(jq --raw-output '.packages | to_entries[]? | .key' < "$JSON")
 		do
-			for f in $(jq --raw-output ".\"$PKG\".files[]? | .file" < "$JSON")
+			for f in $(jq --raw-output ".packages.\"$PKG\".files[]? | .file" < "$JSON")
 			do
 				UNSIGNED+=("$PKG/$f")
 			done
