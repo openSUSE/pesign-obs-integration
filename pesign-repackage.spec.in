@@ -217,6 +217,17 @@ rm "$cert.pub"
 popd
 /usr/lib/rpm/pesign/pesign-gen-repackage-spec @PESIGN_REPACKAGE_COMPRESS@ @PESIGN_LOAD_SPEC_MACROS@ \
 	--directory=%buildroot "${rpms[@]}"
+
+# For some reason in Fedora builds the directory structure is different from SUSE,
+# which breaks repacking. Copy the package content to the buildroot that is actually used.
+# Also all the usual tricks to disable the debug package fail, and the build fails due to
+# the 'Empty files file <...>/debugsourcefiles.list' error. Delete the specpart to bypass it.
+%if 0%{?fedora}
+	echo "%%install" >>repackage.spec
+	echo "cp -r %buildroot/* %%buildroot" >>repackage.spec
+	echo "rm -f %buildroot/../SPECPARTS/rpm-debuginfo.specpart" >>repackage.spec
+%endif
+
 rpmbuild --define "%%buildroot %buildroot" --define "%%disturl $disturl" \
 	--define "%%_builddir $PWD" \
 	--define "%%_binaries_in_noarch_packages_terminate_build 0" \
