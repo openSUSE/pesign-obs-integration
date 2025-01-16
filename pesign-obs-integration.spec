@@ -17,6 +17,10 @@
 # needssslcertforbuild
 
 
+%if 0%{?fedora}
+%global debug_package %{nil}
+%endif
+
 Name:           pesign-obs-integration
 Version:        10.2
 Release:        0
@@ -27,7 +31,11 @@ URL:            https://en.opensuse.org/openSUSE:UEFI_Image_File_Sign_Tools
 Source0:        %{name}-%{version}.tar.gz
 BuildRequires:  openssl
 Requires:       fipscheck
+%if 0%{?suse_version}
 Requires:       mozilla-nss-tools
+%else
+Requires:       nss-tools
+%endif
 Requires:       openssl
 # suse-module-tools <= 15.0.10 contains modsign-verify
 Requires:       suse-module-tools >= 15.0.10
