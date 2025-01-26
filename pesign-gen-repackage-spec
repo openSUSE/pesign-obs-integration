@@ -175,7 +175,7 @@ sub load_package {
 		$res{$tag} = query_single($rpm, $tag);
 	}
 	my @files;
-	my @list = query_array($rpm, qw(filenames fileflags filemodes fileusername filegroupname filesizes filemtimes filelinktos fileverifyflags filelangs));
+	my @list = query_array($rpm, qw(filenames fileflags filemodes fileusername filegroupname filesizes filemtimes filelinktos fileverifyflags filelangs filecaps));
 	for my $file (@list) {
 		my $new = {
 				name   => $file->[0],
@@ -188,6 +188,7 @@ sub load_package {
 				target => $file->[7],
 				verify => $file->[8],
 				lang   => $file->[9],
+				caps   => $file->[10],
 		};
 		push(@files, $new);
 		if ($new->{name} =~ /\.ko$/ && S_ISREG($new->{mode})) {
@@ -549,6 +550,9 @@ sub print_files {
 		}
 		if ($f->{lang} ne "") {
 			$attrs .= sprintf('%%lang(%s) ', $f->{lang});
+		}
+		if ($f->{caps} ne "" && $f->{caps} ne "(none)") {
+			$attrs .= sprintf('%%caps(%s) ', $f->{caps});
 		}
 		if ($compress ne "" &&
 		    $f->{name} =~ /\.ko$/ && S_ISREG($f->{mode})) {
