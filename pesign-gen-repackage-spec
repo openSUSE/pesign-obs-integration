@@ -66,6 +66,9 @@ sub query_array {
 	while (<$fh>) {
 		chomp;
 		my @t = split(/\|/, $_, -1);
+		for (@t) {
+			$_ = '' if $_ eq '(none)';
+		}
 		push(@res, \@t);
 	}
 	close($fh);
@@ -200,7 +203,7 @@ sub load_package {
 		my @deps;
 		my @list = query_array($rpm, "${tag}name", "${tag}flags", "${tag}version");
 		for my $d (@list) {
-			next if $d->[0] eq "(none)";
+			next if $d->[0] eq "";
 			push(@deps, {
 					name => $d->[0],
 					flags => $d->[1],
@@ -377,7 +380,7 @@ sub print_package {
 		my $sense = $trigger->{'sense'}->[0];
 		die("unsupported sense $sense\n") unless $sense2tag{$sense};
 		print SPEC "\%file$sense2tag{$sense}";
-		print SPEC " -P $trigger->{'priority'}" if $trigger->{'priority'} && $trigger->{'priority'} ne '(none)';
+		print SPEC " -P $trigger->{'priority'}" if $trigger->{'priority'} && $trigger->{'priority'} ne '';
 		print SPEC " -p $trigger->{interp} -n $p->{name}";
 		print_script("trigger$i-$p->{name}", $trigger);
 		print SPEC " -- ".join(' ', @{$trigger->{'name'}})."\n";
@@ -387,7 +390,7 @@ sub print_package {
 		my $sense = $trigger->{'sense'}->[0];
 		die("unsupported sense $sense\n") unless $sense2tag{$sense};
 		print SPEC "\%transfile$sense2tag{$sense}";
-		print SPEC " -P $trigger->{'priority'}" if $trigger->{'priority'} && $trigger->{'priority'} ne '(none)';
+		print SPEC " -P $trigger->{'priority'}" if $trigger->{'priority'} && $trigger->{'priority'} ne '';
 		print SPEC " -p $trigger->{interp} -n $p->{name}";
 		print_script("trigger$i-$p->{name}", $trigger);
 		print SPEC " -- ".join(' ', @{$trigger->{'name'}})."\n";
@@ -551,7 +554,7 @@ sub print_files {
 		if ($f->{lang} ne "") {
 			$attrs .= sprintf('%%lang(%s) ', $f->{lang});
 		}
-		if ($f->{caps} ne "" && $f->{caps} ne "(none)") {
+		if ($f->{caps} ne "") {
 			$attrs .= sprintf('%%caps(%s) ', $f->{caps});
 		}
 		if ($compress ne "" &&
