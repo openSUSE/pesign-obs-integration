@@ -305,6 +305,13 @@ sub quote {
 	return $text;
 }
 
+sub quote_fn {
+	my $text = shift;
+	$text =~ s/\\/\\\\/g;
+	$text =~ s/"/\\"/g;
+	return '"' . quote($text) . '"';
+}
+
 sub print_script {
 	my ($file, $script) = @_;
 
@@ -555,13 +562,13 @@ sub print_files {
 			chmod($f->{mode}, $path);
 			utime($f->{mtime}, $f->{mtime}, $path);
 			push(@tocompress, $path);
-			print SPEC "$attrs " . quote($f->{name}) . "$compress_ext\n";
+			print SPEC "$attrs " . quote_fn($f->{name}) . "$compress_ext\n";
 		} else {
-			print SPEC "$attrs " . quote($f->{name}) . "\n";
+			print SPEC "$attrs " . quote_fn($f->{name}) . "\n";
 		}
 
 		if (-e "$path.sig") {
-			print SPEC "$attrs " . quote($f->{name}) . ".sig\n";
+			print SPEC "$attrs " . quote_fn($f->{name}) . ".sig\n";
 		}
 	}
 
