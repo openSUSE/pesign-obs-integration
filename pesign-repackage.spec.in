@@ -49,6 +49,7 @@ export BRP_PESIGN_FILES=""
 
 pushd %buildroot
 disturl=
+rpms_filter=@PESIGN_PACKAGES@
 rpms=()
 for rpm in %_sourcedir/*.rpm; do
 	case "$rpm" in
@@ -73,6 +74,12 @@ for rpm in %_sourcedir/*.rpm; do
 		cp "$rpm" "$_"
 		continue
 	esac
+	# If the caller specified a set of packages to repack, skip everything else
+	if [[ -n "$rpms_filter" && ! "$rpm" =~ "$rpms_filter" ]]; then
+		mkdir -p "%_topdir/OTHER"
+		cp "$rpm" "$_"
+		continue
+	fi
 	rpm2cpio "$rpm" | cpio -idm
 	d=$(rpm -qp --qf '%%{disturl}' "$rpm")
 	if test -z "$disturl"; then
