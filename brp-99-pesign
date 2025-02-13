@@ -159,7 +159,7 @@ mkdir -p "$archive_dir"
 nss_db=$(mktemp -d)
 trap 'rm -rf "$nss_db"' EXIT
 # strong password (in FIPS mode it is checked for strength)
-echo Eir4;Qua.daeJ,hP0 > "$nss_db/passwd"
+echo 'Eir4;Qua.daeJ,hP0' > "$nss_db/passwd"
 certutil -N -d "$nss_db" -f "$nss_db/passwd"
 
 echo "Creating $archive"
