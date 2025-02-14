@@ -134,7 +134,7 @@ else
 fi
 mkdir nss-db
 nss_db=$PWD/nss-db
-echo foofoofoo > "$nss_db/passwd"
+echo "Eir4;Qua.daeJ,hP0" > "$nss_db/passwd"
 certutil -N -d "$nss_db" -f "$nss_db/passwd"
 certutil -A -d "$nss_db" -f "$nss_db/passwd" -n cert -t CT,CT,CT -i "$cert"
 
