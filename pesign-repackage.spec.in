@@ -25,7 +25,12 @@
 Name:           pesign-repackage
 Version:        1.0
 Release:        1
-BuildRequires:  openssl mozilla-nss-tools
+BuildRequires:  openssl
+%if 0%{?suse_version}
+BuildRequires:  mozilla-nss-tools
+%else
+BuildRequires:  nss-tools
+%endif
 %ifarch %ix86 x86_64 ia64
 BuildRequires:  pesign
 %endif
