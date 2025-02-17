@@ -486,7 +486,7 @@ sub print_files {
 	my @tocompress;
 	my $compress_ext = "";
 	my $compress_cmd = "";
-	
+
 	if ($compress eq "xz") {
 		$compress_ext = ".xz";
 		$compress_cmd = "xz --lzma2=dict=2MiB -f";
@@ -497,7 +497,7 @@ sub print_files {
 		$compress_ext = ".zst";
 		$compress_cmd = "zstd -T0 --rm -f -q";
 	}
-	
+
 	for my $f (@$files) {
 		my $path = "$directory/$f->{name}";
 		my $attrs = "";
@@ -562,13 +562,13 @@ sub print_files {
 			chmod($f->{mode}, $path);
 			utime($f->{mtime}, $f->{mtime}, $path);
 			push(@tocompress, $path);
-			print SPEC "$attrs " . quote_fn($f->{name}) . "$compress_ext\n";
+			print SPEC "$attrs " . quote_fn($f->{name} . $compress_ext) . "\n";
 		} else {
 			print SPEC "$attrs " . quote_fn($f->{name}) . "\n";
 		}
 
 		if (-e "$path.sig") {
-			print SPEC "$attrs " . quote_fn($f->{name}) . ".sig\n";
+			print SPEC "$attrs " . quote_fn($f->{name} . ".sig") . "\n";
 		}
 	}
 
