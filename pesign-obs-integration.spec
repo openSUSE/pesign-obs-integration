@@ -41,7 +41,7 @@ Requires:       openssl
 %if 0%{?suse_version}
 Requires:       suse-module-tools >= 15.0.10
 %endif
-%ifarch %{ix86} x86_64 ia64 aarch64 %{arm} riscv64
+%ifarch %{ix86} x86_64 ia64 aarch64 %{arm} riscv64 loongarch64
 Requires:       pesign
 %endif
 
