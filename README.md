@@ -47,7 +47,7 @@ Consult the dh_signobs manpage for more information.
 
 ### Kernel Module Compression
 When BRP_PESIGN_COMPRESS_MODULE is passed, the script tries to compress the
-kernel modules at the repackaging phase. Currently xz, gzip and zstd format is supported.
+kernel modules at the repackaging phase. Currently none, xz, gzip and zstd format is supported.
 For enable the compression feature, put the following along with
 BRP_PESIGN_FILES setup:
 
