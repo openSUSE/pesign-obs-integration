@@ -97,6 +97,62 @@ else
 	cert=/dev/null
 fi
 
+pushd "$RPM_BUILD_ROOT"
+args=()
+for pattern in $files; do
+	pattern=${pattern#/}
+	if test "${pattern:0:2}" != "./"; then
+		pattern="./$pattern"
+	fi
+	if test -d "$pattern"; then
+		pattern="$pattern/*"
+	fi
+	args=("${args[@]}" -o -path "$pattern")
+done
+# delete the leading -o
+unset args[0]
+
+archive=$output/$RPM_PACKAGE_NAME.cpio.rsasign
+archive_dir=$output/$RPM_PACKAGE_NAME
+mkdir -p "$archive_dir"
+# create an empty nss database to make pesign happy
+nss_db=$(mktemp -d)
+trap 'rm -rf "$nss_db"' EXIT
+# strong password (in FIPS mode it is checked for strength)
+echo 'Eir4;Qua.daeJ,hP0' > "$nss_db/passwd"
+certutil -N -d "$nss_db" -f "$nss_db/passwd"
+
+echo "Creating $archive"
+files=($(find . -type f \( "${args[@]}" \)))
+for f in "${files[@]}"; do
+	dest="$archive_dir/$f"
+	mkdir -p "${dest%/*}"
+	case "$f" in
+	./boot/* | *.efi | */lib/modules/*/vmlinu[xz] | */lib/modules/*/[Ii]mage | */lib/modules/*/z[Ii]mage)
+		if [ -f /usr/bin/pesign ]; then
+			pesign --certdir="$nss_db" -i "$f" -E $dest
+		else
+			# Non PE architectures like s390x
+			cp "$f" "$dest"
+		fi
+		;;
+	*)
+		cp "$f" "$dest"
+	esac
+done
+cd "$archive_dir"
+nfiles="$(find . -type f | wc -l)"
+if [ "$nfiles" != 0 ] ; then
+	find . -type f | cpio -H newc -o >"$archive"
+fi
+rm -rf "$archive_dir"
+
+if [ "$nfiles" = 0 ] ; then
+echo "No files in $archive, giving up"
+	exit 0
+fi
+popd
+
 if test -e $RPM_SOURCE_DIR/pesign-spec-macros; then
 	sed "
 		s:%{name}:$RPM_PACKAGE_NAME:g
@@ -145,51 +201,3 @@ for rpmlintrc in $RPM_SOURCE_DIR/*rpmlintrc; do
 		cp "$rpmlintrc" "$output/"
 	fi
 done
-
-cd "$RPM_BUILD_ROOT"
-args=()
-for pattern in $files; do
-	pattern=${pattern#/}
-	if test "${pattern:0:2}" != "./"; then
-		pattern="./$pattern"
-	fi
-	if test -d "$pattern"; then
-		pattern="$pattern/*"
-	fi
-	args=("${args[@]}" -o -path "$pattern")
-done
-# delete the leading -o
-unset args[0]
-
-archive=$output/$RPM_PACKAGE_NAME.cpio.rsasign
-archive_dir=$output/$RPM_PACKAGE_NAME
-mkdir -p "$archive_dir"
-# create an empty nss database to make pesign happy
-nss_db=$(mktemp -d)
-trap 'rm -rf "$nss_db"' EXIT
-# strong password (in FIPS mode it is checked for strength)
-echo 'Eir4;Qua.daeJ,hP0' > "$nss_db/passwd"
-certutil -N -d "$nss_db" -f "$nss_db/passwd"
-
-echo "Creating $archive"
-files=($(find . -type f \( "${args[@]}" \)))
-for f in "${files[@]}"; do
-	dest="$archive_dir/$f"
-	mkdir -p "${dest%/*}"
-	case "$f" in
-	./boot/* | *.efi | */lib/modules/*/vmlinu[xz] | */lib/modules/*/[Ii]mage | */lib/modules/*/z[Ii]mage)
-		if [ -f /usr/bin/pesign ]; then
-			pesign --certdir="$nss_db" -i "$f" -E $dest
-		else
-			# Non PE architectures like s390x
-			cp "$f" "$dest"
-		fi
-		;;
-	*)
-		cp "$f" "$dest"
-	esac
-done
-cd "$archive_dir"
-find . -type f | cpio -H newc -o >"$archive"
-rm -rf "$archive_dir"
-
