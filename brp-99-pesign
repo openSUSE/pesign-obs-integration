@@ -97,7 +97,7 @@ else
 	cert=/dev/null
 fi
 
-cd "$RPM_BUILD_ROOT"
+pushd "$RPM_BUILD_ROOT"
 args=()
 for pattern in $files; do
 	pattern=${pattern#/}
@@ -141,8 +141,17 @@ for f in "${files[@]}"; do
 	esac
 done
 cd "$archive_dir"
-find . -type f | cpio -H newc -o >"$archive"
+nfiles="$(find . -type f | wc -l)"
+if [ "$nfiles" != 0 ] ; then
+	find . -type f | cpio -H newc -o >"$archive"
+fi
 rm -rf "$archive_dir"
+
+if [ "$nfiles" = 0 ] ; then
+echo "No files in $archive, giving up"
+	exit 0
+fi
+popd
 
 if test -e $RPM_SOURCE_DIR/pesign-spec-macros; then
 	sed "
