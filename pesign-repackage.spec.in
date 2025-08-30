@@ -97,6 +97,13 @@ for rpm in %_sourcedir/*.rpm; do
 	rpms=("${rpms[@]}" "$rpm")
 done
 popd
+if [ ${#rpms[@]} -eq 0 ]; then
+    echo "No repackage RPMs found, exiting."
+    # Found that _build_create_debug can not disable debug package building
+    # in this case. So removed rpm-debuginfo.specpart here. (bsc#1248618)
+    rm -f %buildroot/../SPECPARTS/rpm-debuginfo.specpart
+    exit 0
+fi
 # Copy files other than the meta files and RPMs to %%_topdir/OTHER
 OTHER_FILES=`find %_sourcedir/ -maxdepth 1 -type f \
 	-not -regex '.*\.\(rpm\|spec\|changes\|rsasign\|sig\|crt\)' \
