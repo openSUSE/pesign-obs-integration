@@ -495,6 +495,8 @@ sub print_files {
 	my $compress_ext = "";
 	my $compress_cmd = "";
 
+	$compress = "" if $compress eq "none";
+
 	if ($compress eq "xz") {
 		$compress_ext = ".xz";
 		$compress_cmd = "xz --lzma2=dict=2MiB -f";
