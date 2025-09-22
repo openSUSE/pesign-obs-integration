@@ -145,6 +145,8 @@ my %script2tag = (
 	preun        => "preun",
 	postun       => "postun",
 	pretrans     => "pretrans",
+	preuntrans   => "preuntrans",
+	postuntrans  => "postuntrans",
 	posttrans    => "posttrans",
 	verifyscript => "verifyscript",
 	# FIXME: triggers
@@ -420,6 +422,8 @@ my %deptypes = (
 	preun  => (1 << 11),
 	postun => (1 << 12),
 	verify => (1 << 13),
+	preuntrans => (1 << 20),
+	postuntrans => (1 << 21),
 );
 my %depflags = (
 	"<"    => (1 << 1),
