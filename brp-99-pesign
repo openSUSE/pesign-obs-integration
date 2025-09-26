@@ -86,7 +86,7 @@ elif test "${BRP_PESIGN_COMPRESS_MODULE}" = "gzip"; then
 elif test "${BRP_PESIGN_COMPRESS_MODULE}" = "zstd"; then
 	pesign_repackage_compress="--compress zstd"
 else
-	pesign_repackage_compress=""
+	pesign_repackage_compress="--compress none"
 fi
 
 cert=$RPM_SOURCE_DIR/_projectcert.crt
