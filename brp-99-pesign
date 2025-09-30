@@ -85,6 +85,11 @@ elif test "${BRP_PESIGN_COMPRESS_MODULE}" = "gzip"; then
 	pesign_repackage_compress="--compress gzip"
 elif test "${BRP_PESIGN_COMPRESS_MODULE}" = "zstd"; then
 	pesign_repackage_compress="--compress zstd"
+elif test "${BRP_PESIGN_COMPRESS_MODULE}" = "none"; then
+	pesign_repackage_compress="--compress none"
+elif test "${BRP_PESIGN_COMPRESS_MODULE}"; then
+	echo "$0: error: unknown value of BRP_PESIGN_COMPRESS_MODULE" >&2
+	exit 1
 else
 	pesign_repackage_compress=""
 fi
