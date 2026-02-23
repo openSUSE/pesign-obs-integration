@@ -347,6 +347,7 @@ sub print_package {
 	if ($is_main) {
 		print SPEC "\%{load:\%_sourcedir/$macros_file}\n" if $macros_file ne "";
 		print SPEC "Name: $p->{name}\n";
+		print SPEC "RemovePathPostfixes: .$p->{name}\n";
 		print SPEC "Buildroot: $directory\n";
 		if ($p->{nosource}) {
 			# We do not generate any no(src).rpm, but we want the
@@ -357,6 +358,7 @@ sub print_package {
 		}
 	} else {
 		print SPEC "\%package -n $p->{name}\n";
+		print SPEC "RemovePathPostfixes: .$p->{name}\n";
 	}
 	for my $tag (@simple_tags) {
 		next if $p->{$tag} eq "";
@@ -407,7 +409,7 @@ sub print_package {
 	}
 	if ($p->{files}) {
 		print SPEC "\%files -n $p->{name}\n";
-		print_files($p->{files});
+		print_files($p->{name}, $p->{files});
 	}
 	print SPEC "\n";
 }
@@ -490,6 +492,7 @@ my %verifyflags = (
 );
 
 sub print_files {
+    my $pkg_name = shift;
 	my $files = shift;
 	my @tocompress;
 	my $compress_ext = "";
@@ -509,12 +512,17 @@ sub print_files {
 	}
 
 	for my $f (@$files) {
-		my $path = "$directory/$f->{name}";
+		my $is_dir = S_ISDIR($f->{mode});
+		my $suffixed_name = $is_dir ? $f->{name} : $f->{name} . "." . $pkg_name;
+		my $path = "$directory/$suffixed_name";
 		my $attrs = "";
 		# Fix mtime of directories, which cpio -idm fails to preserve
-		if (S_ISDIR($f->{mode})) {
+		if ($is_dir) {
 			$attrs .= "\%dir ";
 			utime($f->{mtime}, $f->{mtime}, $path);
+		} else {
+			# files are suffixed
+			$path = "$directory/$f->{name}.${pkg_name}";
 		}
 		if ($f->{flags} & $filetypes{config}) {
 			$attrs .= "%config ";
@@ -575,13 +583,15 @@ sub print_files {
 			chmod($f->{mode}, $path);
 			utime($f->{mtime}, $f->{mtime}, $path);
 			push(@tocompress, $path);
-			print SPEC "$attrs " . quote_fn($f->{name} . $compress_ext) . "\n";
+			print SPEC "$attrs " . quote_fn($suffixed_name . $compress_ext) . "\n";
 		} else {
-			print SPEC "$attrs " . quote_fn($f->{name}) . "\n";
+			print SPEC "$attrs " . quote_fn($suffixed_name) . "\n";
 		}
 
-		if (-e "$path.sig") {
-			print SPEC "$attrs " . quote_fn($f->{name} . ".sig") . "\n";
+		my $sig_name = $f->{name} . ".sig";
+		my $suffixed_sig_name = $is_dir ? $sig_name : $sig_name . "." . $pkg_name;
+		if (-e "$directory/$suffixed_sig_name") {
+			print SPEC "$attrs " . quote_fn($suffixed_sig_name) . "\n";
 		}
 	}
 
