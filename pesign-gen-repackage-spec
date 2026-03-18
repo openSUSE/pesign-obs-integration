@@ -162,9 +162,10 @@ my %com2pl = (
 );
 
 my %sense2tag = (
-	0x10000 => 'triggerin',
-	0x20000 => 'triggerun',
-	0x40000 => 'triggerpostun',
+	(1 << 16) => 'triggerin',
+	(1 << 17) => 'triggerun',
+	(1 << 18) => 'triggerpostun',
+	(1 << 25) => 'triggerprein',
 );
 
 # tags which are printed verbatim in the specfile
