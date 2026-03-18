@@ -104,6 +104,15 @@ for rpm; do
 		cp "$rpm" "$_"
 		continue
 	esac
+	# Only extract RPMs that contain kernel modules (.ko) to be signed.
+	# RPMs without .ko files are passed through to the output directory
+	# unchanged to avoid buildroot conflicts with RemovePathPostfixes.
+	if ! rpm -qp --qf '[%{filenames}\n]' "$rpm" 2>/dev/null | grep -q '\.ko$'; then
+		dir="$rpmdir/$(rpm -qp --qf '%{arch}' "$rpm")"
+		mkdir -p "$dir"
+		cp "$rpm" "$dir"
+		continue
+	fi
 	# To avoid conflict with duplicate installed file use suffix and
 	# RemovePathPostfixes from RPM macros.
 	pkg_name=$(rpm -qp --qf '%{name}' "$rpm")
