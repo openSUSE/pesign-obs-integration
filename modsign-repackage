@@ -104,7 +104,16 @@ for rpm; do
 		cp "$rpm" "$_"
 		continue
 	esac
-	rpm2cpio "$rpm" | (cd "$buildroot"; cpio -idm --quiet) || exit
+	# To avoid conflict with duplicate installed file use suffix and
+	# RemovePathPostfixes from RPM macros.
+	pkg_name=$(rpm -qp --qf '%{name}' "$rpm")
+	mkdir -p "$workdir/tmp_extract"
+	rpm2cpio "$rpm" | cpio -idm -D "$workdir/tmp_extract" --quiet || exit
+	find "$workdir/tmp_extract" -depth ! -type d -print0 | while IFS= read -r -d '' f; do
+		mv "$f" "${f}.${pkg_name}"
+	done
+	cp -a "$workdir/tmp_extract"/. "$buildroot/"
+	rm -rf "$workdir/tmp_extract"
 	d=$(rpm -qp --qf '%{disturl}' "$rpm")
 	if test -z "$disturl"; then
 		disturl=$d
@@ -120,14 +129,15 @@ echo "Signing kernel modules..."
 if test ! -e "$cert.pub"; then
 	openssl x509 -in "$cert" -inform DER -pubkey -noout > "$cert.pub"
 fi
-for module in $(find "$buildroot" -type f -name '*.ko' -printf '%P\n'); do
+for module in $(find "$buildroot" -type f -name '*.ko.*' -printf '%P\n'); do
+	orig_module=$(echo "$module" | sed -r 's/\.ko\.[^/]+$/.ko/')
 	if test -n "$key"; then
 		/usr/lib/rpm/pesign/kernel-sign-file \
 			-i pkcs7 sha256 "$key" "$cert" "$buildroot/$module"
 	else
-		raw_sig="$sig_dir/$module.sig"
+		raw_sig="$sig_dir/$orig_module.sig"
 		if test ! -e "$raw_sig"; then
-			echo "$module.sig not found in $sig_dir" >&2
+			echo "$orig_module.sig not found in $sig_dir" >&2
 			exit 1
 		fi
 		ver_err=$(openssl rsautl -verify -inkey "$cert.pub" -pubin -in "$raw_sig" 2>&1 | grep -i error)
