@@ -56,6 +56,21 @@ pushd %buildroot
 disturl=
 rpms_filter=@PESIGN_PACKAGES@
 rpms=()
+# Collect the set of files scheduled for signing from the rsasign cpio
+# archive.  Only RPMs that contain at least one of those files will be
+# extracted into the shared buildroot; all others are forwarded to RPMS
+# unchanged.  This preserves the RPM RemovePathPostfixes feature: two
+# sub-packages that install different source files (e.g. foo and
+# foo.standalone) to the same final path no longer conflict during the
+# unpack phase because only the package that actually needs signing is
+# unpacked.
+declare -A files_to_sign=()
+if test -e %_sourcedir/@NAME@.cpio.rsasign.sig; then
+	while IFS= read -r _sigf; do
+		[[ "$_sigf" == *.sig ]] || continue
+		files_to_sign["/${_sigf%.sig}"]=1
+	done < <(cpio -t < %_sourcedir/@NAME@.cpio.rsasign.sig 2>/dev/null)
+fi
 for rpm in %_sourcedir/*.rpm; do
 	case "$rpm" in
 	*.src.rpm | *.nosrc.rpm)
@@ -85,6 +100,30 @@ for rpm in %_sourcedir/*.rpm; do
 		cp "$rpm" "$_"
 		continue
 	fi
+	# Skip RPMs that do not contain any file scheduled for signing so that
+	# packages using RemovePathPostfixes on the same destination path can
+	# coexist in the buildroot without cpio conflicts.
+	if [ ${#files_to_sign[@]} -gt 0 ]; then
+		_needs_signing=0
+		while IFS= read -r _f; do
+			if [ -n "${files_to_sign["$_f"]+x}" ]; then
+				_needs_signing=1
+				break
+			fi
+		done < <(rpm -qp --qf '[%%{filenames}\n]' "$rpm" 2>/dev/null)
+		if [ "$_needs_signing" -eq 0 ]; then
+			# Place the package directly in the RPMS output tree so that
+            # post-build checks (e.g. check-filelist) install it alongside
+			# the repacked packages and directory ownership is satisfied.
+			_arch=$(rpm -qp --qf '%%{arch}' "$rpm")
+			mkdir -p "%_rpmdir/$_arch"
+			cp "$rpm" "%_rpmdir/$_arch/"
+			continue
+		fi
+	fi
+	# To avoid conflict with duplicate installed file use suffix and
+	# RemovePathPostfixes from RPM macros.
+	pkg_name=$(rpm -qp --qf '%%{name}' "$rpm")
     mkdir -p "tmp_extract"
 	rpm2cpio "$rpm" | cpio -idm -D "tmp_extract" || exit
 	find "tmp_extract" -depth ! -type d -print0 | while IFS= read -r -d '' f; do
