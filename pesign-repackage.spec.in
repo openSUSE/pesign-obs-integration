@@ -255,10 +255,36 @@ for sig in "${sigs[@]}"; do
 		# appending to the file itself, e.g. for s390x.
 		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
 %endif
-		# Regenerate the HMAC if it exists
-		hmac="${f%%/*}/.${f##*/}.hmac"
-		if test -e "$hmac"; then
+		# Regenerate the HMAC if it exists.
+		# Derive the expected .hmac path from $sig (not $f) so a
+		# .{pkg_name} suffix on $f does not affect the path computation.
+		# ${f%%/*} (greedy) always yields "" on absolute paths; use
+		# ${_orig%/*} (single %) for the directory component instead.
+		# The .hmac file is also extracted with the .{pkg_name} suffix, so
+		# search for it using the known package-name set.
+		# When $f is suffixed, expose the content to gen-hmac via a
+		# temporary symlink at the unsuffixed path; then move the freshly-
+		# generated HMAC onto the suffixed path so pesign-gen-repackage-spec
+		# packages the post-signing HMAC instead of the stale pre-signing one.
+		_orig=%buildroot/${sig%.sig}
+		hmac="${_orig%/*}/.${_orig##*/}.hmac"
+		_hmac_actual="$hmac"
+		if [ ! -e "$_hmac_actual" ]; then
+			for _pn in "${_pkg_names[@]}"; do
+				[ -e "${hmac}.${_pn}" ] && { _hmac_actual="${hmac}.${_pn}"; break; }
+			done
+		fi
+		if test -e "$_hmac_actual"; then
+			_linked=
+			if [ "$f" != "$_orig" ]; then
+				ln -sf "$f" "$_orig"
+				_linked=1
+			fi
 			/usr/lib/rpm/pesign/gen-hmac -r %buildroot "/${sig%.sig}"
+			if [ -n "$_linked" ]; then
+				[ -e "$hmac" ] && mv "$hmac" "$_hmac_actual"
+				rm -f "$_orig"
+			fi
 		fi
 		;;
 	*stage3.bin.sig)
