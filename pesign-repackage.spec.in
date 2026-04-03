@@ -65,10 +65,13 @@ rpms=()
 # unpack phase because only the package that actually needs signing is
 # unpacked.
 declare -A files_to_sign=()
+_files_to_sign_list=$(mktemp) || exit 1
 if test -e %_sourcedir/@NAME@.cpio.rsasign.sig; then
 	while IFS= read -r _sigf; do
+		_sigf="${_sigf#./}"          # normalise ./path → path (cpio may add ./)
 		[[ "$_sigf" == *.sig ]] || continue
 		files_to_sign["/${_sigf%.sig}"]=1
+		printf '%s\n' "/${_sigf%.sig}" >> "$_files_to_sign_list"
 	done < <(cpio -t < %_sourcedir/@NAME@.cpio.rsasign.sig 2>/dev/null)
 fi
 for rpm in %_sourcedir/*.rpm; do
@@ -104,16 +107,9 @@ for rpm in %_sourcedir/*.rpm; do
 	# packages using RemovePathPostfixes on the same destination path can
 	# coexist in the buildroot without cpio conflicts.
 	if [ ${#files_to_sign[@]} -gt 0 ]; then
-		_needs_signing=0
-		while IFS= read -r _f; do
-			if [ -n "${files_to_sign["$_f"]+x}" ]; then
-				_needs_signing=1
-				break
-			fi
-		done < <(rpm -qp --qf '[%%{filenames}\n]' "$rpm" 2>/dev/null)
-		if [ "$_needs_signing" -eq 0 ]; then
+		if ! rpm -qp --qf '[%%{filenames}\n]' "$rpm" 2>/dev/null | grep -qxFf "$_files_to_sign_list"; then
 			# Place the package directly in the RPMS output tree so that
-            # post-build checks (e.g. check-filelist) install it alongside
+			# post-build checks (e.g. check-filelist) install it alongside
 			# the repacked packages and directory ownership is satisfied.
 			_arch=$(rpm -qp --qf '%%{arch}' "$rpm")
 			mkdir -p "%_rpmdir/$_arch"
@@ -141,6 +137,7 @@ for rpm in %_sourcedir/*.rpm; do
 	fi
 	rpms=("${rpms[@]}" "$rpm")
 done
+rm -f "$_files_to_sign_list"
 popd
 if [ ${#rpms[@]} -eq 0 ]; then
     echo "No repackage RPMs found, exiting."
@@ -198,6 +195,14 @@ certutil -A -d "$nss_db" -f "$nss_db/passwd" -n cert -t CT,CT,CT -i "$cert"
 # Extract the public key of the certificate
 openssl x509 -in "$cert" -inform DER -pubkey -noout > "$cert.pub"
 
+# Pre-compute the package names of extracted RPMs.  Each file in the
+# buildroot was renamed with a .{pkg_name} suffix; the exact set of
+# suffixes is used to resolve the actual signed-file path unambiguously.
+_pkg_names=()
+for _rpm in "${rpms[@]}"; do
+	_pkg_names+=("$(rpm -qp --qf '%%{name}' "$_rpm")")
+done
+
 sigs=($(find -type f -name '*.sig' -printf '%%P\n'))
 for sig in "${sigs[@]}"; do
 	# Verify the signature with the public key of the certificate
@@ -207,14 +212,24 @@ for sig in "${sigs[@]}"; do
 		exit 1
 	fi
 	f=%buildroot/${sig%.sig}
+	# Files are extracted with a .{pkg_name} suffix to avoid buildroot
+	# conflicts (RemovePathPostfixes).  Resolve the actual path by checking
+	# only the known package-name suffixes from the extracted RPMs.
+	if [ ! -e "$f" ] && [ ! -L "$f" ]; then
+		for _pn in "${_pkg_names[@]}"; do
+			[ -e "${f}.${_pn}" ] && { f="${f}.${_pn}"; break; }
+		done
+	fi
 	case "/$sig" in
 	*.ko.sig|*.mod.sig)
 		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
 		;;
 	*.auth.sig)
 		/usr/lib/rpm/pesign/kernel-sign-file -N -P -d -C "$cert" -i pkcs7 -s "$sig" sha256 "$cert" "$f"
-		fbase="${f##*/}"
-		fbase="${fbase%.auth}"
+		# Derive fbase from $sig (not $f) so a .{pkg_name} suffix on $f
+		# does not corrupt the UEFI variable name passed to sign-efi-sig-list.
+		fbase="${sig%.auth.sig}"
+		fbase="${fbase##*/}"
 		fbase="${fbase%%-*}"
 		perl -0777 -npe 's/\A(?:[\040-\176]\0)+.{18}\0\0.{14}\0\0//s' < "$f" > "$f.orig"
 		sign-efi-sig-list -i "$f.p7sd" "$fbase" "$f.orig" "$f.tmp"
@@ -240,10 +255,36 @@ for sig in "${sigs[@]}"; do
 		# appending to the file itself, e.g. for s390x.
 		/usr/lib/rpm/pesign/kernel-sign-file -i pkcs7 -s "$sig" sha256 "$cert" "$f"
 %endif
-		# Regenerate the HMAC if it exists
-		hmac="${f%%/*}/.${f##*/}.hmac"
-		if test -e "$hmac"; then
+		# Regenerate the HMAC if it exists.
+		# Derive the expected .hmac path from $sig (not $f) so a
+		# .{pkg_name} suffix on $f does not affect the path computation.
+		# ${f%%/*} (greedy) always yields "" on absolute paths; use
+		# ${_orig%/*} (single %) for the directory component instead.
+		# The .hmac file is also extracted with the .{pkg_name} suffix, so
+		# search for it using the known package-name set.
+		# When $f is suffixed, expose the content to gen-hmac via a
+		# temporary symlink at the unsuffixed path; then move the freshly-
+		# generated HMAC onto the suffixed path so pesign-gen-repackage-spec
+		# packages the post-signing HMAC instead of the stale pre-signing one.
+		_orig=%buildroot/${sig%.sig}
+		hmac="${_orig%/*}/.${_orig##*/}.hmac"
+		_hmac_actual="$hmac"
+		if [ ! -e "$_hmac_actual" ]; then
+			for _pn in "${_pkg_names[@]}"; do
+				[ -e "${hmac}.${_pn}" ] && { _hmac_actual="${hmac}.${_pn}"; break; }
+			done
+		fi
+		if test -e "$_hmac_actual"; then
+			_linked=
+			if [ "$f" != "$_orig" ]; then
+				ln -sf "$f" "$_orig"
+				_linked=1
+			fi
 			/usr/lib/rpm/pesign/gen-hmac -r %buildroot "/${sig%.sig}"
+			if [ -n "$_linked" ]; then
+				[ -e "$hmac" ] && mv "$hmac" "$_hmac_actual"
+				rm -f "$_orig"
+			fi
 		fi
 		;;
 	*stage3.bin.sig)
