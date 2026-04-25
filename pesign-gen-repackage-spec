@@ -584,7 +584,7 @@ sub print_files {
 			chmod($f->{mode}, $path);
 			utime($f->{mtime}, $f->{mtime}, $path);
 			push(@tocompress, $path);
-			print SPEC "$attrs " . quote_fn($suffixed_name . $compress_ext) . "\n";
+			print SPEC "$attrs " . quote_fn($f->{name} . $compress_ext . "." . $pkg_name) . "\n";
 		} else {
 			print SPEC "$attrs " . quote_fn($suffixed_name) . "\n";
 		}
@@ -602,6 +602,22 @@ sub print_files {
 		print M join("\n", @tocompress);
 		close(M);
 		system("xargs -a $m -t -P 4 -n 1 $compress_cmd");
+
+		# moved pkg_name suffix to the tail of file name
+                foreach my $suffixed_path (@tocompress) {
+                    # suffixed path: /.../driver.ko.kernel-default
+                    # current filename: /.../driver.ko.kernel-default.zst
+                    my $current_file = $suffixed_path . $compress_ext;
+
+                    if (-e $current_file) {
+			# rename driver.ko.pkg_name.zst to driver.ko.zst.pkg_name
+                        my $new_file = $current_file;
+                        $new_file =~ s/\.${pkg_name}${compress_ext}$/${compress_ext}.${pkg_name}/;
+
+                        rename($current_file, $new_file);
+                    }
+                }
+
 		unlink($m);
 	}
 }
