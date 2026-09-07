@@ -78,7 +78,7 @@ fi
 # pkg_name:rpp_suffix mapping string: "pkg-A:.suffixA pkg-B:.suffixB"
 POSTFIX_MAP_STR=""
 if [ -z "$SPEC_LIST" ]; then
-    echo "No spec files found. RemovePaathPostFixes mapping failed."
+    echo "No spec files found. RemovePathPostFixes mapping failed."
 else
     for spec in $SPEC_LIST; do
 	# Using awk for parsing spec file
