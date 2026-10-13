@@ -152,9 +152,9 @@ for module in $(find "$buildroot" -type f -name '*.ko.*' -printf '%P\n'); do
 			exit 1
 		fi
 		status=0
-		output=$(openssl rsautl -verify -inkey "$cert.pub" -pubin -in "$raw_sig" 2>/dev/null | xxd -p -c 256)
-		status=${PIPESTATUS[0]}
+		output=$(openssl rsautl -verify -inkey "$cert.pub" -pubin -in "$raw_sig" 2>/dev/null | xxd -p -c 256; exit ${PIPESTATUS[0]}) || status=$?
 		if [ "$status" -ne 0 ]; then
+			output=$(openssl rsautl -verify -inkey "$cert.pub" -pubin -in "$raw_sig" 2>&1 >/dev/null | grep -v 'deprecated' || true)
 			echo "$raw_sig signature can not be decrypted by $cert, exit code: $status, output: $output" >&2
 			exit 1
 		fi
