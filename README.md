@@ -12,6 +12,14 @@ BuildRequires: pesign-obs-integration
 BRP_PESIGN_PACKAGES can optionally be defined to restrict repacking to a subset
 of packages of choice.
 
+BRP_PESIGN_PCRSIG_FILES can list Unified Kernel Images built with
+`ukify build --policy-digest --pcr-certificate=%_sourcedir/_projectcert.crt`.
+The TPM2 PCR policies in their .pcrsig section are signed and stored back in
+the section. As the Authenticode signature covers the .pcrsig section, these
+files cannot be also listed in BRP_PESIGN_FILES: a second package has to sign
+them for Secure Boot after this one. Only RSA keys are supported, and the TPM
+must support the key size (usually RSA 2048).
+
 Debian packages need to add the following line to the Source stanza in the
 debian/control file, which will add "Obs: needssslcertforbuild" to the generated
 .dsc file:

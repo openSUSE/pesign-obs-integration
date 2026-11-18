@@ -30,6 +30,10 @@ packages=
 if test -n "${BRP_PESIGN_PACKAGES+x}"; then
 	packages=${BRP_PESIGN_PACKAGES}
 fi
+pcrsig_files=
+if test -n "${BRP_PESIGN_PCRSIG_FILES+x}"; then
+	pcrsig_files=${BRP_PESIGN_PCRSIG_FILES}
+fi
 output=
 while test $# -gt 0; do
 	case "$1" in
@@ -41,6 +45,10 @@ while test $# -gt 0; do
 		packages=$2
 		shift 2
 		;;
+	--pcrsig-files)
+		pcrsig_files=$2
+		shift 2
+		;;
 	--output)
 		output=$2
 		shift 2
@@ -50,7 +58,7 @@ while test $# -gt 0; do
 		exit 1
 	esac
 done
-if test -z "$files"; then
+if test -z "$files" -a -z "$pcrsig_files"; then
 	exit 0
 fi
 if test -z "$output"; then
@@ -231,7 +239,11 @@ echo 'Eir4;Qua.daeJ,hP0' > "$nss_db/passwd"
 certutil -N -d "$nss_db" -f "$nss_db/passwd"
 
 echo "Creating $archive"
-files=($(find . -type f \( "${args[@]}" \)))
+if test ${#args[@]} -gt 0; then
+	files=($(find . -type f \( "${args[@]}" \)))
+else
+	files=()
+fi
 for f in "${files[@]}"; do
 	dest="$archive_dir/$f"
 	mkdir -p "${dest%/*}"
@@ -247,6 +259,17 @@ for f in "${files[@]}"; do
 	*)
 		cp "$f" "$dest"
 	esac
+done
+# Unified Kernel Images built with "ukify --policy-digest" carry in the .pcrsig
+# section the TPM2 PCR policies to sign. Export the data to sign of each one as
+# <file>.pcrsig.<bank>.<index>
+for pattern in $pcrsig_files; do
+	pattern=${pattern#/}
+	for f in $(find . -type f -path "./$pattern"); do
+		dest="$archive_dir/$f"
+		mkdir -p "${dest%/*}"
+		/usr/lib/rpm/pesign/pesign-pcrsig export "$f" "$dest.pcrsig"
+	done
 done
 cd "$archive_dir"
 nfiles="$(find . -type f | wc -l)"

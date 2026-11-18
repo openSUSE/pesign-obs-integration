@@ -1,0 +1,152 @@
+#!/usr/bin/perl
+# Sign the TPM2 PCR policies of a Unified Kernel Image in the Open Build Service
+#
+# A UKI built with "ukify build --policy-digest --pcr-certificate=CERT" carries
+# in its .pcrsig section a JSON document with, for each PCR bank, a list of
+# policies.  Each policy has the data to sign ("tbs", hex) instead of the
+# signature ("sig", base64).  The signature the TPM verifies is RSA PKCS#1 v1.5
+# over SHA-256 of "tbs", the same one the signing server makes for any file.
+#
+#   pesign-pcrsig export UKI PREFIX
+#       Write the data to sign of each policy to PREFIX.<bank>.<index>
+#
+#   pesign-pcrsig import UKI PREFIX PUBKEY
+#       Read the signatures from PREFIX.<bank>.<index>.sig, check that the
+#       policies were made for PUBKEY (PEM, RSA), and store the signatures in
+#       the .pcrsig section.  The section is overwritten in place, padded with
+#       spaces to its size, so nothing else in the PE file changes (layout,
+#       headers, the other sections measured in PCR 11)
+
+use strict;
+use warnings;
+
+use Digest::SHA qw(sha256_hex);
+use JSON::PP;
+use MIME::Base64;
+
+sub usage {
+	print STDERR "Usage: $0 export UKI PREFIX\n";
+	print STDERR "       $0 import UKI PREFIX PUBKEY\n";
+	exit 1;
+}
+
+sub slurp {
+	my ($file) = @_;
+	local $/;
+	open(my $fh, "<:raw", $file) or die "$file: $!\n";
+	my $data = <$fh>;
+	close($fh);
+	return $data;
+}
+
+sub read_at {
+	my ($fh, $file, $offset, $size) = @_;
+	my $data;
+	seek($fh, $offset, 0) or die "$file: $!\n";
+	read($fh, $data, $size) == $size or die "$file: truncated PE file\n";
+	return $data;
+}
+
+# Find the .pcrsig section in the section table of the PE file, and return its
+# offset in the file and its size
+sub find_pcrsig {
+	my ($fh, $uki) = @_;
+	my $pe = unpack("V", read_at($fh, $uki, 0x3c, 4));
+	my ($magic, $nsections, $optsize) =
+		unpack("a4 x2 v x12 v", read_at($fh, $uki, $pe, 22));
+	$magic eq "PE\0\0" or die "$uki: not a PE file\n";
+	my $table = $pe + 24 + $optsize;
+	for my $i (0 .. $nsections - 1) {
+		my ($name, $vsize, $rawsize, $rawptr) =
+			unpack("Z8 V x4 V V", read_at($fh, $uki, $table + 40 * $i, 24));
+		next unless $name eq ".pcrsig";
+		# The stub reads VirtualSize bytes; the file may have more padding
+		my $size = $vsize && $vsize < $rawsize ? $vsize : $rawsize;
+		return ($rawptr, $size);
+	}
+	die "$uki: no .pcrsig section\n";
+}
+
+sub read_pcrsig {
+	my ($uki) = @_;
+	open(my $fh, "<:raw", $uki) or die "$uki: $!\n";
+	my ($offset, $size) = find_pcrsig($fh, $uki);
+	my $data = read_at($fh, $uki, $offset, $size);
+	close($fh);
+	return $data;
+}
+
+sub write_pcrsig {
+	my ($uki, $data) = @_;
+	open(my $fh, "+<:raw", $uki) or die "$uki: $!\n";
+	my ($offset, $size) = find_pcrsig($fh, $uki);
+	length($data) <= $size
+		or die "$uki: the signatures do not fit in the .pcrsig section\n";
+	seek($fh, $offset, 0) or die "$uki: $!\n";
+	print $fh $data, " " x ($size - length($data));
+	close($fh) or die "$uki: $!\n";
+}
+
+# Call $code for each policy, with its bank and its index in the bank
+sub for_each_policy {
+	my ($json, $code) = @_;
+	for my $bank (sort keys %$json) {
+		my $i = 0;
+		for my $policy (@{$json->{$bank}}) {
+			$code->($policy, $bank, $i++);
+		}
+	}
+}
+
+sub export_tbs {
+	my ($uki, $prefix) = @_;
+	my $json = decode_json(read_pcrsig($uki));
+	for_each_policy($json, sub {
+		my ($policy, $bank, $i) = @_;
+		defined $policy->{tbs} or die "$uki: no data to sign in $bank (not built with --policy-digest?)\n";
+		open(my $out, ">:raw", "$prefix.$bank.$i") or die "$prefix.$bank.$i: $!\n";
+		print $out pack("H*", $policy->{tbs});
+		close($out);
+	});
+}
+
+# systemd identifies the key by the SHA-256 of its RSAPublicKey (PKCS#1)
+# structure
+sub fingerprint {
+	my ($pubkey) = @_;
+	# openssl reports "writing RSA key" on stderr
+	open(my $stderr, ">&", \*STDERR) or die "stderr: $!\n";
+	open(STDERR, ">", "/dev/null") or die "/dev/null: $!\n";
+	open(my $fh, "-|", "openssl", "rsa", "-pubin", "-in", $pubkey,
+	     "-RSAPublicKey_out", "-outform", "DER")
+		or die "openssl: $!\n";
+	open(STDERR, ">&", $stderr) or die "stderr: $!\n";
+	binmode($fh);
+	local $/;
+	my $der = <$fh>;
+	close($fh) or die "$pubkey: not an RSA public key\n";
+	return sha256_hex($der);
+}
+
+sub import_sig {
+	my ($uki, $prefix, $pubkey) = @_;
+	my $json = decode_json(read_pcrsig($uki));
+	my $pkfp = fingerprint($pubkey);
+	for_each_policy($json, sub {
+		my ($policy, $bank, $i) = @_;
+		($policy->{pkfp} // "") eq $pkfp
+			or die "$uki: the PCR public key does not match the certificate\n";
+		$policy->{sig} = encode_base64(slurp("$prefix.$bank.$i.sig"), "");
+		delete $policy->{tbs};
+	});
+	write_pcrsig($uki, JSON::PP->new->canonical->encode($json));
+}
+
+my $cmd = shift @ARGV // usage();
+if ($cmd eq "export" && @ARGV == 2) {
+	export_tbs(@ARGV);
+} elsif ($cmd eq "import" && @ARGV == 3) {
+	import_sig(@ARGV);
+} else {
+	usage();
+}
