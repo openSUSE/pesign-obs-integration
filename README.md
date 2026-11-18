@@ -19,6 +19,8 @@ the section. As the Authenticode signature covers the .pcrsig section, these
 files cannot be also listed in BRP_PESIGN_FILES: a second package has to sign
 them for Secure Boot after this one. Only RSA keys are supported, and the TPM
 must support the key size (usually RSA 2048).
+Note: BRP_PESIGN_PCRSIG_FILES does not support RemovePathPostFixes.
+(https://github.com/openSUSE/pesign-obs-integration/pull/90)
 
 Debian packages need to add the following line to the Source stanza in the
 debian/control file, which will add "Obs: needssslcertforbuild" to the generated
